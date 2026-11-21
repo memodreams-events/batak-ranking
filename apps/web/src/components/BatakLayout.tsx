@@ -6,6 +6,7 @@ import { useRanking } from '../hooks/batak';
 import { usePin } from '../hooks/pin';
 import { useToast } from '../hooks/toast';
 import { Logo } from './Logo';
+import { QrPanel } from './QrPanel';
 import { Toast } from './Toast';
 
 const LINKS = [
@@ -155,12 +156,14 @@ export function BatakLayout() {
       </div>
 
       {screen && (
-        <div className="fixed bottom-3 right-4 opacity-35 transition-opacity hover:opacity-100">
+        <div className="fixed bottom-3 left-4 opacity-35 transition-opacity hover:opacity-100">
           <button type="button" className="btn btn-sm" onClick={exitScreen}>
             Salir de pantalla grande
           </button>
         </div>
       )}
+
+      {screen && <QrPanel />}
 
       <Toast />
     </>
