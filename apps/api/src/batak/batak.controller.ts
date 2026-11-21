@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { BatakPinGuard } from './batak-pin.guard';
@@ -54,10 +55,11 @@ export class BatakController {
     return this.batak.activarEvento(id);
   }
 
+  /** `?force=true` borra también las partidas del evento. Sin él, un evento con partidas da 409. */
   @Delete('eventos/:id')
   @UseGuards(BatakPinGuard)
-  borrarEvento(@Param('id', ParseUUIDPipe) id: string) {
-    return this.batak.borrarEvento(id);
+  borrarEvento(@Param('id', ParseUUIDPipe) id: string, @Query('force') force?: string) {
+    return this.batak.borrarEvento(id, force === 'true');
   }
 
   @Get('puntuaciones')

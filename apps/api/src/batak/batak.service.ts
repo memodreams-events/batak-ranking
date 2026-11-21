@@ -98,9 +98,15 @@ export class BatakService {
     return toEvento(data);
   }
 
-  async borrarEvento(id: string): Promise<{ ok: true }> {
-    // La FK es ON DELETE CASCADE, así que borrar un evento con partidas se las
-    // llevaría por delante sin avisar. Comprobamos antes y respondemos 409.
+  /**
+   * Borra un evento. Con `force`, se lleva también sus partidas.
+   *
+   * La FK es ON DELETE CASCADE, así que sin la comprobación previa un borrado
+   * accidental se llevaría el histórico de toda una feria sin avisar. Por eso
+   * el caso destructivo hay que pedirlo a propósito: el que no lo pide, cobra
+   * un 409 que dice exactamente cuántas partidas hay en medio.
+   */
+  async borrarEvento(id: string, force = false): Promise<{ ok: true; partidasBorradas: number }> {
     const { count, error: countError } = await this.supabase
       .anon()
       .from('batak_puntuaciones')
@@ -108,8 +114,13 @@ export class BatakService {
       .eq('evento_id', id);
 
     if (countError) throwFromPostgrest(countError, 'borrarEvento/contar');
-    if ((count ?? 0) > 0) {
-      throw new ConflictException('El evento tiene puntuaciones; no se puede borrar');
+    const partidas = count ?? 0;
+
+    if (partidas > 0 && !force) {
+      throw new ConflictException(
+        `El evento tiene ${partidas} ${partidas === 1 ? 'partida' : 'partidas'}; ` +
+          'bórralas o confirma el borrado completo.',
+      );
     }
 
     const { data, error } = await this.supabase
@@ -121,7 +132,7 @@ export class BatakService {
 
     if (error) throwFromPostgrest(error, 'borrarEvento');
     if (!data?.length) throw new NotFoundException('Evento no encontrado');
-    return { ok: true };
+    return { ok: true, partidasBorradas: partidas };
   }
 
   // ---------- estado del evento activo (lo que consultan la TV y el iPad) ----------

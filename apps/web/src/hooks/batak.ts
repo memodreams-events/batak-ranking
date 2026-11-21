@@ -127,8 +127,12 @@ export function useActivarEvento() {
   );
 }
 
+/** `force` arrastra también las partidas del evento; sin él, el API responde 409. */
 export function useDeleteEvento() {
-  return useWrite((id: string) =>
-    apiFetch<{ ok: true }>(`/batak/eventos/${id}`, { method: 'DELETE', withPin: true }),
+  return useWrite(({ id, force = false }: { id: string; force?: boolean }) =>
+    apiFetch<{ ok: true; partidasBorradas: number }>(
+      `/batak/eventos/${id}${force ? '?force=true' : ''}`,
+      { method: 'DELETE', withPin: true },
+    ),
   );
 }

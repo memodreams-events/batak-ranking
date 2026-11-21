@@ -24,11 +24,25 @@ export function EventosPage() {
   const [nombre, setNombre] = useState('');
   const [fecha, setFecha] = useState(hoy);
 
+  const lista = eventos.data ?? [];
+
   const { armed, press } = useArmed((id) => {
-    deleteEvento.mutate(id, {
-      onSuccess: () => show('Evento borrado'),
-      onError: (error) => show(`No se pudo borrar: ${error.message}`, true),
-    });
+    const evento = lista.find((e) => e.id === id);
+    const partidas = evento?.partidas ?? 0;
+    // Con partidas de por medio el borrado es en cascada, así que hay que
+    // pedirlo explícitamente: el API rechaza el borrado silencioso.
+    deleteEvento.mutate(
+      { id, force: partidas > 0 },
+      {
+        onSuccess: ({ partidasBorradas }) =>
+          show(
+            partidasBorradas > 0
+              ? `Evento borrado con sus ${partidasBorradas} ${partidasBorradas === 1 ? 'partida' : 'partidas'}`
+              : 'Evento borrado',
+          ),
+        onError: (error) => show(`No se pudo borrar: ${error.message}`, true),
+      },
+    );
   });
 
   function create(event: FormEvent): void {
@@ -56,8 +70,6 @@ export function EventosPage() {
       onError: (error) => show(`No se pudo activar: ${error.message}`, true),
     });
   }
-
-  const lista = eventos.data ?? [];
 
   return (
     <section className="grid gap-5 pt-2">
@@ -137,17 +149,17 @@ export function EventosPage() {
                         Activar
                       </button>
                     )}
-                    {/* Borrar un evento con partidas se las llevaría por delante:
-                        el API lo rechaza y aquí ni ofrecemos el botón. */}
-                    {!evento.partidas && (
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-danger"
-                        onClick={() => press(evento.id)}
-                      >
-                        {armed === evento.id ? '¿Seguro?' : 'Borrar'}
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-danger"
+                      onClick={() => press(evento.id)}
+                    >
+                      {armed !== evento.id
+                        ? 'Borrar'
+                        : evento.partidas
+                          ? `¿Borrar ${evento.partidas} partidas?`
+                          : '¿Seguro?'}
+                    </button>
                   </div>
                 </div>
               ))}
