@@ -1,0 +1,6 @@
+# Este API no debe indexarse. El directorio `public` es ademas el Output
+# Directory del proyecto de Vercel: al estar practicamente vacio, ningun
+# fichero del build (src/, dist/) queda expuesto como estatico y todas las
+# rutas caen en el rewrite /(.*) -> /api que atiende Nest.
+User-agent: *
+Disallow: /
