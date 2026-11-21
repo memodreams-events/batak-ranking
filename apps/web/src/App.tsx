@@ -7,6 +7,7 @@ import { BatakLayout } from './components/BatakLayout';
 import { ApuntarPage } from './pages/ApuntarPage';
 import { EventosPage } from './pages/EventosPage';
 import { HistoricoPage } from './pages/HistoricoPage';
+import { PublicoPage } from './pages/PublicoPage';
 import { RankingPage } from './pages/RankingPage';
 
 const queryClient = new QueryClient({
@@ -24,30 +25,43 @@ const queryClient = new QueryClient({
   },
 });
 
+/** Las pantallas del stand: TV, iPad y gestión. Comparten cabecera, PIN y avisos. */
+function StandRoutes() {
+  return (
+    <ToastProvider>
+      <PinProvider>
+        <Routes>
+          <Route element={<BatakLayout />}>
+            <Route path="/" element={<Navigate to="/ranking" replace />} />
+            <Route path="/ranking" element={<RankingPage />} />
+            {/* Misma pantalla que /ranking, en modo TV. */}
+            <Route path="/pantalla" element={<RankingPage />} />
+            <Route path="/apuntar" element={<ApuntarPage />} />
+            <Route path="/eventos" element={<EventosPage />} />
+            <Route path="/historico" element={<HistoricoPage />} />
+            <Route path="*" element={<Navigate to="/ranking" replace />} />
+          </Route>
+        </Routes>
+      </PinProvider>
+    </ToastProvider>
+  );
+}
+
 /**
- * Rutas públicas, sin login. La TV del stand abre /pantalla y el azafato apunta
- * desde /apuntar en el iPad.
+ * Rutas públicas, sin login.
+ *
+ * `/r` es la que se imprime en el QR del stand y queda deliberadamente fuera
+ * de PinProvider: el móvil de un participante no tiene nada que preguntar
+ * sobre el PIN, así que se ahorra esa petición.
  */
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ToastProvider>
-          <PinProvider>
-            <Routes>
-              <Route element={<BatakLayout />}>
-                <Route path="/" element={<Navigate to="/ranking" replace />} />
-                <Route path="/ranking" element={<RankingPage />} />
-                {/* Misma pantalla que /ranking, en modo TV. */}
-                <Route path="/pantalla" element={<RankingPage />} />
-                <Route path="/apuntar" element={<ApuntarPage />} />
-                <Route path="/eventos" element={<EventosPage />} />
-                <Route path="/historico" element={<HistoricoPage />} />
-                <Route path="*" element={<Navigate to="/ranking" replace />} />
-              </Route>
-            </Routes>
-          </PinProvider>
-        </ToastProvider>
+        <Routes>
+          <Route path="/r" element={<PublicoPage />} />
+          <Route path="/*" element={<StandRoutes />} />
+        </Routes>
       </BrowserRouter>
     </QueryClientProvider>
   );
