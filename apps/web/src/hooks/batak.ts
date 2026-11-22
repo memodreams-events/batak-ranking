@@ -120,6 +120,16 @@ export function useActivarEvento() {
 }
 
 /** `force` arrastra también las partidas del evento; sin él, el API responde 409. */
+/** Carga masiva de un histórico ya parseado en el navegador. */
+export function useImportar() {
+  return useWrite((filas: unknown[]) =>
+    apiFetch<{ eventosCreados: number; partidasImportadas: number }>('/batak/importar', {
+      method: 'POST',
+      body: { filas },
+    }),
+  );
+}
+
 export function useDeleteEvento() {
   return useWrite(({ id, force = false }: { id: string; force?: boolean }) =>
     apiFetch<{ ok: true; partidasBorradas: number }>(

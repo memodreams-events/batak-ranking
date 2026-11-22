@@ -13,6 +13,7 @@ import { Public } from '../auth/public.decorator';
 import { BatakService } from './batak.service';
 import { CreateBatakEventoDto } from './dto/create-evento.dto';
 import { CreateBatakPuntuacionDto } from './dto/create-puntuacion.dto';
+import { ImportarDto } from './dto/importar.dto';
 
 /**
  * Ranking de la máquina Batak en ferias.
@@ -67,5 +68,11 @@ export class BatakController {
   @Delete('puntuaciones/:id')
   borrarPuntuacion(@Param('id', ParseUUIDPipe) id: string) {
     return this.batak.borrarPuntuacion(id);
+  }
+
+  /** Carga un histórico completo desde un CSV ya parseado en el navegador. */
+  @Post('importar')
+  importar(@Body() dto: ImportarDto) {
+    return this.batak.importar(dto);
   }
 }

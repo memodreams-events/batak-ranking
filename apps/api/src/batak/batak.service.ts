@@ -11,6 +11,7 @@ import { throwFromPostgrest } from '../common/supabase-error';
 import { SupabaseService } from '../supabase/supabase.service';
 import { CreateBatakEventoDto } from './dto/create-evento.dto';
 import { CreateBatakPuntuacionDto } from './dto/create-puntuacion.dto';
+import { ImportarDto } from './dto/importar.dto';
 
 interface EventoRow {
   id: string;
@@ -220,6 +221,88 @@ export class BatakService {
     if (error) throwFromPostgrest(error, 'borrarPuntuacion');
     if (!data?.length) throw new NotFoundException('Puntuación no encontrada');
     return { ok: true };
+  }
+
+  // ---------- importación ----------
+
+  /**
+   * Carga un histórico de golpe.
+   *
+   * Las filas que traen nombre de evento se agrupan por evento y fecha; las que
+   * no lo traen van al evento activo. Los eventos que no existan se crean
+   * **desactivados**: importar un histórico de ferias pasadas no debe cambiar
+   * cuál es el evento en curso, que es lo que está mirando la TV del stand.
+   *
+   * No hay deduplicación: importar dos veces el mismo fichero mete las partidas
+   * dos veces. Avisar de eso es cosa de la pantalla, que enseña un resumen
+   * antes de confirmar.
+   */
+  async importar(
+    dto: ImportarDto,
+  ): Promise<{ eventosCreados: number; partidasImportadas: number }> {
+    const admin = this.supabase.admin();
+
+    const { data: existentes, error: errorEventos } = await admin
+      .from('batak_eventos')
+      .select('id, nombre, fecha');
+    if (errorEventos) throwFromPostgrest(errorEventos, 'importar/eventos');
+
+    // Clave por nombre normalizado y fecha: así un "Feria Madrid" repetido en
+    // el CSV reutiliza el evento en vez de crear uno por fila.
+    const clave = (nombre: string, fecha: string) => `${norm(nombre).toLowerCase()}|${fecha}`;
+    const porClave = new Map<string, string>();
+    for (const e of (existentes ?? []) as { id: string; nombre: string; fecha: string }[]) {
+      porClave.set(clave(e.nombre, e.fecha), e.id);
+    }
+
+    const activo = await this.eventoActivo();
+    const hoy = new Date().toISOString().slice(0, 10);
+
+    const nuevos: { nombre: string; fecha: string; activo: boolean }[] = [];
+    const clavesNuevas: string[] = [];
+
+    for (const fila of dto.filas) {
+      if (!fila.evento) continue;
+      const fecha = (fila.fechaEvento ?? hoy).slice(0, 10);
+      const k = clave(fila.evento, fecha);
+      if (porClave.has(k) || clavesNuevas.includes(k)) continue;
+      clavesNuevas.push(k);
+      nuevos.push({ nombre: norm(fila.evento), fecha, activo: false });
+    }
+
+    if (nuevos.length > 0) {
+      const { data: creados, error } = await admin
+        .from('batak_eventos')
+        .insert(nuevos)
+        .select('id, nombre, fecha');
+      if (error) throwFromPostgrest(error, 'importar/crearEventos');
+      for (const e of (creados ?? []) as { id: string; nombre: string; fecha: string }[]) {
+        porClave.set(clave(e.nombre, e.fecha), e.id);
+      }
+    }
+
+    const puntuaciones = dto.filas.map((fila) => {
+      const eventoId = fila.evento
+        ? porClave.get(clave(fila.evento, (fila.fechaEvento ?? hoy).slice(0, 10)))
+        : activo?.id;
+      if (!eventoId) {
+        throw new ConflictException(
+          'Hay filas sin evento y no hay ningún evento activo donde ponerlas.',
+        );
+      }
+      return {
+        evento_id: eventoId,
+        nombre: norm(fila.nombre),
+        apellidos: norm(fila.apellidos ?? ''),
+        puntos: fila.puntos,
+        ...(fila.createdAt ? { created_at: fila.createdAt } : {}),
+      };
+    });
+
+    const { error: errorInsert } = await admin.from('batak_puntuaciones').insert(puntuaciones);
+    if (errorInsert) throwFromPostgrest(errorInsert, 'importar/puntuaciones');
+
+    return { eventosCreados: nuevos.length, partidasImportadas: puntuaciones.length };
   }
 
   // ---------- interno ----------
