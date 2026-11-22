@@ -8,32 +8,27 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
-import { BatakPinGuard } from './batak-pin.guard';
+import { Public } from '../auth/public.decorator';
 import { BatakService } from './batak.service';
 import { CreateBatakEventoDto } from './dto/create-evento.dto';
 import { CreateBatakPuntuacionDto } from './dto/create-puntuacion.dto';
-import { isPinRequired } from '../common/pin-mode';
 
 /**
  * Ranking de la máquina Batak en ferias.
  *
- * Las lecturas son públicas: la TV del stand no inicia sesión. Las escrituras
- * piden el PIN compartido en la cabecera `x-batak-pin`.
+ * Todo exige sesión salvo `GET /batak/activo`, que es lo único que necesita la
+ * pantalla pública del QR. El resto —el histórico completo, la lista de
+ * eventos y cualquier escritura— queda cerrado: es una feria con mucha gente y
+ * la URL del API está a la vista de cualquiera.
  */
 @Controller('batak')
 export class BatakController {
   constructor(private readonly batak: BatakService) {}
 
-  /** Comprueba el PIN del iPad: 200 si es válido (o no hay PIN), 401 si no. */
-  @Get('pin')
-  @UseGuards(BatakPinGuard)
-  comprobarPin(): { ok: true; requierePin: boolean } {
-    return { ok: true, requierePin: isPinRequired() };
-  }
-
+  /** Ranking del evento activo. Público: lo lee la pantalla del QR (/r) y la TV. */
   @Get('activo')
+  @Public()
   activo() {
     return this.batak.estadoActivo();
   }
@@ -44,20 +39,17 @@ export class BatakController {
   }
 
   @Post('eventos')
-  @UseGuards(BatakPinGuard)
   crearEvento(@Body() dto: CreateBatakEventoDto) {
     return this.batak.crearEvento(dto);
   }
 
   @Patch('eventos/:id/activar')
-  @UseGuards(BatakPinGuard)
   activarEvento(@Param('id', ParseUUIDPipe) id: string) {
     return this.batak.activarEvento(id);
   }
 
   /** `?force=true` borra también las partidas del evento. Sin él, un evento con partidas da 409. */
   @Delete('eventos/:id')
-  @UseGuards(BatakPinGuard)
   borrarEvento(@Param('id', ParseUUIDPipe) id: string, @Query('force') force?: string) {
     return this.batak.borrarEvento(id, force === 'true');
   }
@@ -68,13 +60,11 @@ export class BatakController {
   }
 
   @Post('puntuaciones')
-  @UseGuards(BatakPinGuard)
   crearPuntuacion(@Body() dto: CreateBatakPuntuacionDto) {
     return this.batak.crearPuntuacion(dto);
   }
 
   @Delete('puntuaciones/:id')
-  @UseGuards(BatakPinGuard)
   borrarPuntuacion(@Param('id', ParseUUIDPipe) id: string) {
     return this.batak.borrarPuntuacion(id);
   }

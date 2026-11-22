@@ -1,15 +1,25 @@
 import type { BatakPuntuacion, RankRow } from './types';
 
-/** Colapsa los espacios de un nombre para que "Ana  Gómez" y "Ana Gómez" sean el mismo jugador. */
-export function norm(nombre: string): string {
-  return String(nombre ?? '')
+/** Colapsa los espacios de un texto para que "Ana  Gómez" y "Ana Gómez" sean lo mismo. */
+export function norm(texto: string): string {
+  return String(texto ?? '')
     .trim()
     .replace(/\s+/g, ' ');
 }
 
-/** Clave de agrupación: el nombre normalizado y sin distinguir mayúsculas. */
-export function playerKey(nombre: string): string {
-  return norm(nombre).toLowerCase();
+/** 'Pepe García'. Si no hay apellidos, solo el nombre. */
+export function nombreCompleto(persona: { nombre: string; apellidos?: string }): string {
+  return norm(`${persona.nombre ?? ''} ${persona.apellidos ?? ''}`);
+}
+
+/**
+ * Clave de agrupación: nombre y apellidos juntos, sin distinguir mayúsculas.
+ *
+ * Incluir los apellidos es lo que impide que dos personas llamadas igual
+ * acaben compartiendo fila, que es justo lo que pasaba antes.
+ */
+export function playerKey(persona: { nombre: string; apellidos?: string }): string {
+  return nombreCompleto(persona).toLowerCase();
 }
 
 /**
@@ -27,12 +37,13 @@ export function leaderboard(puntuaciones: BatakPuntuacion[]): RankRow[] {
   const mejor = new Map<string, RankRow>();
 
   for (const p of puntuaciones) {
-    const key = playerKey(p.nombre);
+    const key = playerKey(p);
     const actual = mejor.get(key);
 
     if (!actual) {
       mejor.set(key, {
         nombre: norm(p.nombre),
+        apellidos: norm(p.apellidos ?? ''),
         puntos: p.puntos,
         intentos: 1,
         createdAt: p.createdAt,
@@ -43,10 +54,7 @@ export function leaderboard(puntuaciones: BatakPuntuacion[]): RankRow[] {
     }
 
     actual.intentos++;
-    if (
-      p.puntos > actual.puntos ||
-      (p.puntos === actual.puntos && p.createdAt < actual.createdAt)
-    ) {
+    if (p.puntos > actual.puntos || (p.puntos === actual.puntos && p.createdAt < actual.createdAt)) {
       actual.puntos = p.puntos;
       actual.createdAt = p.createdAt;
       actual.puntuacionId = p.id;
@@ -68,16 +76,21 @@ export function puestoDe(puntuacionId: string, puntuaciones: BatakPuntuacion[]):
   return leaderboard(puntuaciones).findIndex((row) => row.puntuacionId === puntuacionId) + 1;
 }
 
-/** Nombres ya vistos, ordenados, para el autocompletado del iPad. */
-export function nombresConocidos(...grupos: BatakPuntuacion[][]): string[] {
+/** Valores ya vistos de un campo, ordenados, para el autocompletado del iPad. */
+export function valoresConocidos(
+  campo: 'nombre' | 'apellidos',
+  ...grupos: BatakPuntuacion[][]
+): string[] {
   const vistos = new Set<string>();
   const out: string[] = [];
   for (const grupo of grupos) {
     for (const p of grupo) {
-      const key = playerKey(p.nombre);
+      const valor = norm(p[campo] ?? '');
+      if (!valor) continue;
+      const key = valor.toLowerCase();
       if (vistos.has(key)) continue;
       vistos.add(key);
-      out.push(norm(p.nombre));
+      out.push(valor);
     }
   }
   return out.sort((a, b) => a.localeCompare(b, 'es'));

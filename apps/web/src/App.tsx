@@ -1,12 +1,14 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError } from './lib/api';
-import { PinProvider } from './hooks/pin';
+import { AuthProvider } from './hooks/auth';
 import { ToastProvider } from './hooks/toast';
 import { BatakLayout } from './components/BatakLayout';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { ApuntarPage } from './pages/ApuntarPage';
 import { EventosPage } from './pages/EventosPage';
 import { HistoricoPage } from './pages/HistoricoPage';
+import { LoginPage } from './pages/LoginPage';
 import { PublicoPage } from './pages/PublicoPage';
 import { RankingPage } from './pages/RankingPage';
 
@@ -25,43 +27,37 @@ const queryClient = new QueryClient({
   },
 });
 
-/** Las pantallas del stand: TV, iPad y gestión. Comparten cabecera, PIN y avisos. */
-function StandRoutes() {
-  return (
-    <ToastProvider>
-      <PinProvider>
-        <Routes>
-          <Route element={<BatakLayout />}>
-            <Route path="/" element={<Navigate to="/ranking" replace />} />
-            <Route path="/ranking" element={<RankingPage />} />
-            {/* Misma pantalla que /ranking, en modo TV. */}
-            <Route path="/pantalla" element={<RankingPage />} />
-            <Route path="/apuntar" element={<ApuntarPage />} />
-            <Route path="/eventos" element={<EventosPage />} />
-            <Route path="/historico" element={<HistoricoPage />} />
-            <Route path="*" element={<Navigate to="/ranking" replace />} />
-          </Route>
-        </Routes>
-      </PinProvider>
-    </ToastProvider>
-  );
-}
-
 /**
- * Rutas públicas, sin login.
- *
- * `/r` es la que se imprime en el QR del stand y queda deliberadamente fuera
- * de PinProvider: el móvil de un participante no tiene nada que preguntar
- * sobre el PIN, así que se ahorra esa petición.
+ * Solo hay dos puertas abiertas: `/r`, la pantalla que abre la gente con el QR,
+ * y `/login`. Todo lo demás —la TV, el iPad, los eventos y el histórico— exige
+ * sesión, y el API la exige por su cuenta: bloquear únicamente estas rutas
+ * sería decorativo.
  */
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/r" element={<PublicoPage />} />
-          <Route path="/*" element={<StandRoutes />} />
-        </Routes>
+        <AuthProvider>
+          <ToastProvider>
+            <Routes>
+              <Route path="/r" element={<PublicoPage />} />
+              <Route path="/login" element={<LoginPage />} />
+
+              <Route element={<ProtectedRoute />}>
+                <Route element={<BatakLayout />}>
+                  <Route path="/" element={<Navigate to="/ranking" replace />} />
+                  <Route path="/ranking" element={<RankingPage />} />
+                  {/* Misma pantalla que /ranking, en modo TV. */}
+                  <Route path="/pantalla" element={<RankingPage />} />
+                  <Route path="/apuntar" element={<ApuntarPage />} />
+                  <Route path="/eventos" element={<EventosPage />} />
+                  <Route path="/historico" element={<HistoricoPage />} />
+                  <Route path="*" element={<Navigate to="/ranking" replace />} />
+                </Route>
+              </Route>
+            </Routes>
+          </ToastProvider>
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

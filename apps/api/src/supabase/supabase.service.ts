@@ -3,12 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 /**
- * Dos clientes y una regla: leer va con la anon key, escribir con service_role.
+ * Dos clientes con papeles muy distintos.
  *
- * No hay usuarios ni JWT en esta app, así que RLS no puede distinguir a nadie:
- * las políticas solo permiten SELECT. Toda escritura necesita saltarse RLS, y
- * quien decide si puede hacerlo es el PIN que comprueba BatakPinGuard antes de
- * llegar aquí.
+ * `admin()` (service_role) es el único que toca las tablas. Desde la migración
+ * 0002 no hay ninguna política RLS, así que `anon` no lee nada: la anon key
+ * viaja en el bundle del navegador y hay que darla por conocida.
+ *
+ * `anon()` queda solo para validar los tokens de sesión contra Supabase Auth.
  */
 @Injectable()
 export class SupabaseService {
@@ -25,7 +26,7 @@ export class SupabaseService {
     this.serviceRoleKey = config.get<string>('SUPABASE_SERVICE_ROLE_KEY') ?? '';
   }
 
-  /** Cliente anónimo: solo ve lo que las políticas dejan ver a `anon`. */
+  /** Cliente anónimo. Solo para hablar con Supabase Auth; no lee tablas. */
   anon(): SupabaseClient {
     this.anonClient ??= createClient(this.url, this.anonKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
@@ -33,7 +34,7 @@ export class SupabaseService {
     return this.anonClient;
   }
 
-  /** Cliente con service_role: se salta RLS. Solo para escrituras ya validadas por el PIN. */
+  /** Cliente con service_role: se salta RLS. Es el único que accede a los datos. */
   admin(): SupabaseClient {
     if (!this.serviceRoleKey) {
       throw new InternalServerErrorException(
@@ -45,5 +46,14 @@ export class SupabaseService {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
     return this.adminClient;
+  }
+
+  /** Valida un access token contra Supabase. Devuelve null si no es válido. */
+  async getUserFromToken(
+    accessToken: string,
+  ): Promise<{ id: string; email: string | null } | null> {
+    const { data, error } = await this.anon().auth.getUser(accessToken);
+    if (error || !data.user) return null;
+    return { id: data.user.id, email: data.user.email ?? null };
   }
 }

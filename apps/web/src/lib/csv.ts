@@ -13,12 +13,15 @@ function cell(value: unknown): string {
  * BOM los acentos salen rotos.
  */
 export function puntuacionesToCsv(puntuaciones: BatakPuntuacion[]): string {
-  const rows: unknown[][] = [['Evento', 'Fecha evento', 'Nombre', 'Puntuación', 'Fecha y hora']];
+  const rows: unknown[][] = [
+    ['Evento', 'Fecha evento', 'Nombre', 'Apellidos', 'Puntuación', 'Fecha y hora'],
+  ];
   for (const p of puntuaciones) {
     rows.push([
       p.eventoNombre ?? '',
       p.eventoFecha ?? '',
       p.nombre,
+      p.apellidos ?? '',
       p.puntos,
       p.createdAt.replace('T', ' ').slice(0, 16),
     ]);

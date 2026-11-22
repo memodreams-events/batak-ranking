@@ -1,6 +1,6 @@
-const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/v1').replace(/\/$/, '');
+import { supabase } from './supabase';
 
-const PIN_KEY = 'batak_pin';
+const BASE_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/v1').replace(/\/$/, '');
 
 export class ApiError extends Error {
   constructor(
@@ -12,40 +12,27 @@ export class ApiError extends Error {
   }
 }
 
-/** localStorage revienta en modo privado de Safari, que es justo donde acaba el iPad del stand. */
-export function getPin(): string {
-  try {
-    return localStorage.getItem(PIN_KEY) ?? '';
-  } catch {
-    return '';
-  }
-}
-
-export function setPin(pin: string): void {
-  try {
-    localStorage.setItem(PIN_KEY, pin);
-  } catch {
-    /* sin almacenamiento: el PIN vale para esta sesión y se vuelve a pedir */
-  }
-}
-
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
-  /** Manda el PIN guardado. Solo lo necesitan las escrituras. */
-  withPin?: boolean;
-  /** PIN concreto, para comprobarlo antes de guardarlo. */
-  pin?: string;
+  /** Las rutas públicas (la del QR) no mandan sesión: el visitante no tiene. */
+  anonymous?: boolean;
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = 'GET', body, withPin = false, pin } = options;
+  const { method = 'GET', body, anonymous = false } = options;
   const headers: Record<string, string> = {};
 
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
-  const effectivePin = pin ?? (withPin ? getPin() : '');
-  if (effectivePin) headers['x-batak-pin'] = effectivePin;
+  if (!anonymous) {
+    // getSession() renueva el token si está a punto de caducar, así que la TV
+    // puede pasar la feria entera encendida sin que se le caiga la sesión.
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new ApiError('Tu sesión ha caducado. Vuelve a entrar.', 401);
+    headers.Authorization = `Bearer ${token}`;
+  }
 
   let response: Response;
   try {

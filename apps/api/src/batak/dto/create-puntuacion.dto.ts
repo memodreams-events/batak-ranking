@@ -6,6 +6,11 @@ export class CreateBatakPuntuacionDto {
   @MaxLength(60)
   nombre!: string;
 
+  @IsString()
+  @MinLength(1)
+  @MaxLength(80)
+  apellidos!: string;
+
   @IsInt()
   @Min(0)
   @Max(1_000_000)

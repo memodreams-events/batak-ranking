@@ -1,23 +1,25 @@
 import { useRef, useState } from 'react';
 import type { FormEvent } from 'react';
-import { fmtTime, norm, num } from '@batak/shared';
+import { fmtTime, nombreCompleto, norm, num } from '@batak/shared';
 import {
   useAddPuntuacion,
   useDeletePuntuacion,
-  useNombresConocidos,
   useRanking,
+  useValoresConocidos,
 } from '../hooks/batak';
 import { useArmed } from '../hooks/useArmed';
 import { useToast } from '../hooks/toast';
 
 export function ApuntarPage() {
   const { evento, puntuaciones } = useRanking();
-  const nombres = useNombresConocidos();
+  const nombres = useValoresConocidos('nombre');
+  const apellidosConocidos = useValoresConocidos('apellidos');
   const addPuntuacion = useAddPuntuacion();
   const deletePuntuacion = useDeletePuntuacion();
   const { show } = useToast();
 
   const [nombre, setNombre] = useState('');
+  const [apellidos, setApellidos] = useState('');
   const [puntos, setPuntos] = useState('');
   const nameInput = useRef<HTMLInputElement>(null);
 
@@ -37,22 +39,27 @@ export function ApuntarPage() {
     if (!canSave) return;
 
     const limpio = norm(nombre);
+    const limpioApellidos = norm(apellidos);
     const valor = Math.round(Number(puntos));
     if (!limpio) return show('Escribe un nombre', true);
+    // Sin apellidos, dos jugadores que se llamen igual comparten fila en la
+    // clasificación y uno de los dos pierde su marca.
+    if (!limpioApellidos) return show('Escribe los apellidos', true);
     // Number('') es 0, así que hay que comprobar el campo vacío aparte.
     if (puntos.trim() === '' || !Number.isFinite(valor) || valor < 0) {
       return show('La puntuación debe ser un número', true);
     }
 
     addPuntuacion.mutate(
-      { nombre: limpio, puntos: valor },
+      { nombre: limpio, apellidos: limpioApellidos, puntos: valor },
       {
         onSuccess: ({ puesto }) => {
           show(
-            `${limpio}: ${num(valor)} puntos` +
+            `${nombreCompleto({ nombre: limpio, apellidos: limpioApellidos })}: ${num(valor)} puntos` +
               (puesto ? ` · puesto ${puesto}` : ' (no mejora su récord)'),
           );
           setNombre('');
+          setApellidos('');
           setPuntos('');
           nameInput.current?.focus();
         },
@@ -86,6 +93,27 @@ export function ApuntarPage() {
               <datalist id="bk-names">
                 {nombres.map((n) => (
                   <option key={n} value={n} />
+                ))}
+              </datalist>
+            </div>
+            <div className="grid gap-1.5">
+              <label htmlFor="bk-surname" className="label">
+                Apellidos
+              </label>
+              <input
+                id="bk-surname"
+                type="text"
+                list="bk-surnames"
+                maxLength={80}
+                placeholder="Apellidos del jugador"
+                className="field"
+                value={apellidos}
+                onChange={(event) => setApellidos(event.target.value)}
+                required
+              />
+              <datalist id="bk-surnames">
+                {apellidosConocidos.map((a) => (
+                  <option key={a} value={a} />
                 ))}
               </datalist>
             </div>
@@ -129,7 +157,7 @@ export function ApuntarPage() {
                   }`}
                 >
                   <div className="min-w-0 [overflow-wrap:anywhere]">
-                    {partida.nombre}
+                    {nombreCompleto(partida)}
                     <span className="ml-1.5 text-[13px] text-fg2">
                       {fmtTime(partida.createdAt)}
                     </span>

@@ -24,6 +24,7 @@ interface PuntuacionRow {
   id: string;
   evento_id: string;
   nombre: string;
+  apellidos: string | null;
   puntos: number;
   created_at: string;
   batak_eventos?: { nombre: string; fecha: string } | null;
@@ -42,6 +43,8 @@ const toPuntuacion = (row: PuntuacionRow): BatakPuntuacion => ({
   id: row.id,
   eventoId: row.evento_id,
   nombre: row.nombre,
+  // Las partidas anteriores a la migración 0003 no tienen apellidos.
+  apellidos: row.apellidos ?? '',
   puntos: row.puntos,
   createdAt: row.created_at,
   ...(row.batak_eventos
@@ -57,7 +60,7 @@ export class BatakService {
 
   async listarEventos(): Promise<BatakEvento[]> {
     const { data, error } = await this.supabase
-      .anon()
+      .admin()
       .from('batak_eventos')
       .select('*, batak_puntuaciones(count)')
       .order('created_at', { ascending: false });
@@ -108,7 +111,7 @@ export class BatakService {
    */
   async borrarEvento(id: string, force = false): Promise<{ ok: true; partidasBorradas: number }> {
     const { count, error: countError } = await this.supabase
-      .anon()
+      .admin()
       .from('batak_puntuaciones')
       .select('id', { count: 'exact', head: true })
       .eq('evento_id', id);
@@ -142,7 +145,7 @@ export class BatakService {
     if (!evento) return { evento: null, puntuaciones: [] };
 
     const { data, error } = await this.supabase
-      .anon()
+      .admin()
       .from('batak_puntuaciones')
       .select('*')
       .eq('evento_id', evento.id)
@@ -160,7 +163,7 @@ export class BatakService {
 
   async listarTodas(): Promise<BatakPuntuacion[]> {
     const { data, error } = await this.supabase
-      .anon()
+      .admin()
       .from('batak_puntuaciones')
       .select('*, batak_eventos(nombre, fecha)')
       .order('created_at', { ascending: true });
@@ -177,7 +180,12 @@ export class BatakService {
     const { data, error } = await this.supabase
       .admin()
       .from('batak_puntuaciones')
-      .insert({ evento_id: evento.id, nombre: norm(dto.nombre), puntos: dto.puntos })
+      .insert({
+        evento_id: evento.id,
+        nombre: norm(dto.nombre),
+        apellidos: norm(dto.apellidos),
+        puntos: dto.puntos,
+      })
       .select('*')
       .single<PuntuacionRow>();
 
@@ -185,7 +193,7 @@ export class BatakService {
     const puntuacion = toPuntuacion(data);
 
     const { data: todas, error: listError } = await this.supabase
-      .anon()
+      .admin()
       .from('batak_puntuaciones')
       .select('*')
       .eq('evento_id', evento.id);
@@ -218,7 +226,7 @@ export class BatakService {
 
   private async eventoActivo(): Promise<EventoRow | null> {
     const { data, error } = await this.supabase
-      .anon()
+      .admin()
       .from('batak_eventos')
       .select('*')
       .eq('activo', true)

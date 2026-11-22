@@ -1,10 +1,7 @@
-import { useState } from 'react';
-import type { FormEvent } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { fmtDate } from '@batak/shared';
 import { useRanking } from '../hooks/batak';
-import { usePin } from '../hooks/pin';
-import { useToast } from '../hooks/toast';
+import { useAuth } from '../hooks/auth';
 import { Logo } from './Logo';
 import { QrPanel } from './QrPanel';
 import { Toast } from './Toast';
@@ -32,53 +29,9 @@ function Lights() {
   );
 }
 
-function PinForm() {
-  const { submit } = usePin();
-  const { show } = useToast();
-  const [value, setValue] = useState('');
-  const [error, setError] = useState(false);
-
-  async function onSubmit(event: FormEvent): Promise<void> {
-    event.preventDefault();
-    const ok = await submit(value.trim());
-    setError(!ok);
-    if (ok) {
-      setValue('');
-      show('PIN correcto');
-    }
-  }
-
-  return (
-    <form
-      onSubmit={onSubmit}
-      className="mb-4 rounded-[10px] border border-dashed border-amber p-3.5"
-    >
-      <label htmlFor="batak-pin" className="font-semibold">
-        Este dispositivo necesita el PIN para apuntar puntuaciones
-      </label>
-      <div className="mt-2.5 flex flex-wrap items-center gap-2.5">
-        <input
-          id="batak-pin"
-          type="password"
-          inputMode="numeric"
-          autoComplete="off"
-          placeholder="PIN"
-          className="field max-w-[160px]"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-        />
-        <button type="submit" className="btn-primary">
-          Entrar
-        </button>
-        {error && <span className="text-sm text-bad">PIN incorrecto</span>}
-      </div>
-    </form>
-  );
-}
-
 export function BatakLayout() {
   const { evento, online } = useRanking();
-  const { requerido } = usePin();
+  const { email, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -141,16 +94,25 @@ export function BatakLayout() {
           {screen ? (
             <Logo className="h-[max(5rem,11vh)]" />
           ) : (
-            <div className="flex items-center gap-2 text-[13px] text-fg2">
-              <span
-                className={`h-2 w-2 rounded-full ${online ? 'bg-ok shadow-[0_0_6px_#4ad67f]' : 'bg-bad'}`}
-              />
-              <span>{online ? 'En directo' : 'Sin conexión con el servidor'}</span>
+            <div className="flex items-center gap-3 text-[13px] text-fg2">
+              <span className="flex items-center gap-2">
+                <span
+                  className={`h-2 w-2 rounded-full ${online ? 'bg-ok shadow-[0_0_6px_#4ad67f]' : 'bg-bad'}`}
+                />
+                {online ? 'En directo' : 'Sin conexión con el servidor'}
+              </span>
+              {email && (
+                <>
+                  <span className="hidden sm:inline">·</span>
+                  <span className="hidden sm:inline">{email}</span>
+                  <button type="button" className="btn btn-sm" onClick={() => void signOut()}>
+                    Salir
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>
-
-        {requerido && !screen && <PinForm />}
 
         <Outlet context={{ screen }} />
       </div>

@@ -1,4 +1,4 @@
-import { fmtTime, num } from '@batak/shared';
+import { fmtTime, nombreCompleto, num } from '@batak/shared';
 import type { RankRow } from '@batak/shared';
 
 interface RankListProps {
@@ -49,7 +49,7 @@ export function RankList({
         const podium = PODIUM[index] ?? 'text-fg2';
         return (
           <div
-            key={row.nombre}
+            key={row.puntuacionId}
             className={[
               'grid items-center gap-3.5 rounded-[10px] border bg-bg2',
               screen
@@ -70,7 +70,7 @@ export function RankList({
               <div
                 className={`font-medium [overflow-wrap:anywhere] ${screen ? 'text-[32px]' : 'text-xl'}`}
               >
-                {row.nombre}
+                {nombreCompleto(row)}
               </div>
               {meta(row, showEvent) && (
                 <div className="text-[13px] text-fg2">{meta(row, showEvent)}</div>

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { UseMutationResult } from '@tanstack/react-query';
-import { leaderboard, nombresConocidos } from '@batak/shared';
+import { leaderboard, valoresConocidos } from '@batak/shared';
 import type {
   BatakEstado,
   BatakEvento,
@@ -9,7 +9,6 @@ import type {
   RankRow,
 } from '@batak/shared';
 import { ApiError, apiFetch } from '../lib/api';
-import { usePin } from './pin';
 
 /** Cada cuánto vuelven a preguntar la TV del stand y el iPad. */
 const POLL_MS = 4000;
@@ -25,7 +24,8 @@ const EMPTY_ESTADO: BatakEstado = { evento: null, puntuaciones: [] };
 export function useEstado() {
   return useQuery({
     queryKey: keys.activo,
-    queryFn: () => apiFetch<BatakEstado>('/batak/activo'),
+    // Única ruta pública: la usa la pantalla del QR, sin sesión.
+    queryFn: () => apiFetch<BatakEstado>('/batak/activo', { anonymous: true }),
     refetchInterval: POLL_MS,
     // La TV se queda horas en la misma pestaña; sin esto deja de refrescarse
     // en cuanto el navegador considera que no está en primer plano.
@@ -67,47 +67,40 @@ export function useRanking(): {
   };
 }
 
-/** Nombres ya vistos, para el autocompletado del iPad. */
-export function useNombresConocidos(): string[] {
+/** Valores ya vistos de un campo, para el autocompletado del iPad. */
+export function useValoresConocidos(campo: 'nombre' | 'apellidos'): string[] {
   const { puntuaciones } = useRanking();
   const todas = useTodas();
-  return nombresConocidos(puntuaciones, todas.data ?? []);
+  return valoresConocidos(campo, puntuaciones, todas.data ?? []);
 }
 
-/**
- * Envoltorio de las escrituras: refresca lo que toque y, si el API responde
- * 401, marca que este dispositivo necesita volver a introducir el PIN.
- */
+/** Envoltorio de las escrituras: al terminar, refresca lo que toque. */
 function useWrite<TArgs, TResult>(
   mutationFn: (args: TArgs) => Promise<TResult>,
 ): UseMutationResult<TResult, Error, TArgs> {
   const queryClient = useQueryClient();
-  const { markRejected } = usePin();
 
   return useMutation({
     mutationFn,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['batak'] });
     },
-    onError: (error) => {
-      if (error instanceof ApiError && error.status === 401) markRejected();
-    },
   });
 }
 
 export function useAddPuntuacion() {
-  return useWrite(({ nombre, puntos }: { nombre: string; puntos: number }) =>
-    apiFetch<PuntuacionCreada>('/batak/puntuaciones', {
-      method: 'POST',
-      body: { nombre, puntos },
-      withPin: true,
-    }),
+  return useWrite(
+    ({ nombre, apellidos, puntos }: { nombre: string; apellidos: string; puntos: number }) =>
+      apiFetch<PuntuacionCreada>('/batak/puntuaciones', {
+        method: 'POST',
+        body: { nombre, apellidos, puntos },
+      }),
   );
 }
 
 export function useDeletePuntuacion() {
   return useWrite((id: string) =>
-    apiFetch<{ ok: true }>(`/batak/puntuaciones/${id}`, { method: 'DELETE', withPin: true }),
+    apiFetch<{ ok: true }>(`/batak/puntuaciones/${id}`, { method: 'DELETE' }),
   );
 }
 
@@ -116,14 +109,13 @@ export function useAddEvento() {
     apiFetch<BatakEvento>('/batak/eventos', {
       method: 'POST',
       body: { nombre, fecha },
-      withPin: true,
     }),
   );
 }
 
 export function useActivarEvento() {
   return useWrite((id: string) =>
-    apiFetch<BatakEvento>(`/batak/eventos/${id}/activar`, { method: 'PATCH', withPin: true }),
+    apiFetch<BatakEvento>(`/batak/eventos/${id}/activar`, { method: 'PATCH' }),
   );
 }
 
@@ -132,7 +124,7 @@ export function useDeleteEvento() {
   return useWrite(({ id, force = false }: { id: string; force?: boolean }) =>
     apiFetch<{ ok: true; partidasBorradas: number }>(
       `/batak/eventos/${id}${force ? '?force=true' : ''}`,
-      { method: 'DELETE', withPin: true },
+      { method: 'DELETE' },
     ),
   );
 }

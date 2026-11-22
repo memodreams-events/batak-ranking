@@ -13,6 +13,8 @@ export interface BatakPuntuacion {
   id: string;
   eventoId: string;
   nombre: string;
+  /** Puede venir vacío: las partidas anteriores a noviembre de 2026 no lo tienen. */
+  apellidos: string;
   puntos: number;
   createdAt: string;
   /** Solo en el histórico global, donde cada fila puede venir de un evento distinto. */
@@ -29,6 +31,7 @@ export interface BatakEstado {
 /** Fila de clasificación: el mejor resultado de cada jugador. */
 export interface RankRow {
   nombre: string;
+  apellidos: string;
   puntos: number;
   intentos: number;
   createdAt: string;

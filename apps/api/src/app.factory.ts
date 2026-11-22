@@ -3,7 +3,6 @@ import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import type { Express } from 'express';
 import { AppModule } from './app.module';
-import { assertPinModeIsSafe } from './common/pin-mode';
 
 /** Orígenes permitidos: el front desplegado, sus previews y el dev local. */
 function corsOrigin(): (
@@ -30,9 +29,6 @@ function corsOrigin(): (
 
 /** Configuración común al servidor local y al handler serverless. */
 export async function createApp(adapter?: ExpressAdapter): Promise<INestApplication> {
-  // Antes de levantar nada: sin PIN en producción el API queda abierto.
-  assertPinModeIsSafe();
-
   const app = adapter
     ? await NestFactory.create(AppModule, adapter, { logger: ['error', 'warn', 'log'] })
     : await NestFactory.create(AppModule, { logger: ['error', 'warn', 'log'] });
@@ -41,9 +37,7 @@ export async function createApp(adapter?: ExpressAdapter): Promise<INestApplicat
   app.enableCors({
     origin: corsOrigin(),
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    // El iPad manda el PIN en una cabecera propia; sin declararla aquí el
-    // preflight la rechaza y todas las escrituras fallan desde el navegador.
-    allowedHeaders: ['Content-Type', 'x-batak-pin'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     maxAge: 86_400,
   });
   app.useGlobalPipes(
