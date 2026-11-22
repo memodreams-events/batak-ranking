@@ -45,7 +45,10 @@ export function RankingPage() {
         )}
         <RankList
           rows={ranking}
-          limit={20}
+          // En la TV solo caben unos 10 a ese tamaño: mostrar más significa
+          // cortarlos por abajo o esconderlos tras el panel del QR. En la
+          // pantalla normal sí hay sitio para 20.
+          limit={screen ? 10 : 20}
           screen={screen}
           emptyTitle={evento ? 'Todavía no hay puntuaciones' : 'No hay ningún evento activo'}
           emptyText={
