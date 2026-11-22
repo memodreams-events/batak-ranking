@@ -12,6 +12,12 @@ interface RankListProps {
   emptyText?: string;
   /** Modo TV: todo más grande para leerlo desde el pasillo. */
   screen?: boolean;
+  /**
+   * Puesto real de cada fila. Hace falta cuando la lista viene filtrada por el
+   * buscador: si alguien va séptimo, debe seguir viendo un 7 aunque sea el
+   * único resultado en pantalla.
+   */
+  puestoDeFila?: (row: RankRow) => number;
 }
 
 /** Posiciones de podio: oro, plata y bronce. El resto va en gris. */
@@ -33,6 +39,7 @@ export function RankList({
   emptyTitle = 'Sin puntuaciones',
   emptyText = '',
   screen = false,
+  puestoDeFila,
 }: RankListProps) {
   if (rows.length === 0) {
     return (
@@ -46,7 +53,8 @@ export function RankList({
   return (
     <div className="grid gap-1.5">
       {rows.slice(0, limit).map((row, index) => {
-        const podium = PODIUM[index] ?? 'text-fg2';
+        const puesto = puestoDeFila ? puestoDeFila(row) : index + 1;
+        const podium = PODIUM[puesto - 1] ?? 'text-fg2';
         return (
           <div
             key={row.puntuacionId}
@@ -55,7 +63,7 @@ export function RankList({
               screen
                 ? 'grid-cols-[80px_minmax(0,1fr)_auto] px-[22px] py-4'
                 : 'grid-cols-[56px_minmax(0,1fr)_auto] px-3.5 py-2.5',
-              index === 0
+              puesto === 1
                 ? 'border-amber bg-gradient-to-r from-amber/20 to-bg2 to-60%'
                 : 'border-transparent',
               row.puntuacionId === highlightId ? 'animate-flash motion-reduce:animate-none' : '',
@@ -64,7 +72,7 @@ export function RankList({
             <div
               className={`font-display font-bold tabular-nums ${podium} ${screen ? 'text-[44px]' : 'text-[28px]'}`}
             >
-              {index + 1}
+              {puesto}
             </div>
             <div className="min-w-0">
               <div
@@ -77,7 +85,7 @@ export function RankList({
               )}
             </div>
             <div
-              className={`font-display font-bold tabular-nums ${index < 3 ? podium : ''} ${screen ? 'text-[52px]' : 'text-[32px]'}`}
+              className={`font-display font-bold tabular-nums ${puesto <= 3 ? podium : ''} ${screen ? 'text-[52px]' : 'text-[32px]'}`}
             >
               {num(row.puntos)}
             </div>

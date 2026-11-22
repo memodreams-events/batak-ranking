@@ -1,7 +1,7 @@
 import { fmtDate, num } from '@batak/shared';
 import { useRanking } from '../hooks/batak';
 import { Logo } from '../components/Logo';
-import { RankList } from '../components/RankList';
+import { RankListBuscable } from '../components/RankListBuscable';
 
 /**
  * Vista para los participantes, pensada para el móvil.
@@ -57,9 +57,11 @@ export function PublicoPage() {
       </div>
 
       <main className="flex-1 py-5">
-        <RankList
+        <RankListBuscable
           rows={ranking}
           limit={50}
+          id="buscar-publico"
+          placeholder="Busca tu nombre"
           emptyTitle={evento ? 'Aún no hay puntuaciones' : 'No hay ningún evento activo'}
           emptyText={
             evento

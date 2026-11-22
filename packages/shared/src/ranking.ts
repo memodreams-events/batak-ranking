@@ -23,6 +23,30 @@ export function playerKey(persona: { nombre: string; apellidos?: string }): stri
 }
 
 /**
+ * Texto preparado para buscar: sin tildes, sin mayúsculas y sin espacios de más.
+ *
+ * En una feria el azafato escribe "jose" y el jugador se apuntó como "José";
+ * si la búsqueda distinguiera tildes no lo encontraría nunca.
+ */
+export function paraBusqueda(texto: string): string {
+  return norm(texto)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+/** true si el jugador encaja con lo escrito en el buscador. Una consulta vacía deja pasar a todos. */
+export function coincideJugador(
+  persona: { nombre: string; apellidos?: string },
+  consulta: string,
+): boolean {
+  const q = paraBusqueda(consulta);
+  if (!q) return true;
+  // Por trozos: "gar jo" encuentra a "José García" aunque el orden no coincida.
+  return q.split(' ').every((trozo) => paraBusqueda(nombreCompleto(persona)).includes(trozo));
+}
+
+/**
  * Clasificación a partir de las partidas: una fila por jugador con su mejor
  * puntuación, de mayor a menor.
  *

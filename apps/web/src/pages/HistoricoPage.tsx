@@ -3,7 +3,7 @@ import type { ChangeEvent } from 'react';
 import { leaderboard, num } from '@batak/shared';
 import { useEventos, useImportar, useTodas } from '../hooks/batak';
 import { useToast } from '../hooks/toast';
-import { RankList } from '../components/RankList';
+import { RankListBuscable } from '../components/RankListBuscable';
 import { downloadText, puntuacionesToCsv } from '../lib/csv';
 import { parsearCsv } from '../lib/csv-import';
 import type { ResultadoParseo } from '../lib/csv-import';
@@ -72,10 +72,11 @@ export function HistoricoPage() {
 
       <div className="panel">
         <h3 className="panel-title">Mejores puntuaciones de todos los eventos</h3>
-        <RankList
+        <RankListBuscable
           rows={ranking}
           limit={30}
           showEvent
+          id="buscar-historico"
           emptyTitle={todas.isLoading ? 'Cargando…' : 'Sin puntuaciones todavía'}
           emptyText={
             todas.isLoading

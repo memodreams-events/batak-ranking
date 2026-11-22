@@ -1,4 +1,11 @@
-import { leaderboard, nombreCompleto, norm, puestoDe, valoresConocidos } from '@batak/shared';
+import {
+  coincideJugador,
+  leaderboard,
+  nombreCompleto,
+  norm,
+  puestoDe,
+  valoresConocidos,
+} from '@batak/shared';
 import type { BatakPuntuacion } from '@batak/shared';
 
 const p = (
@@ -138,5 +145,38 @@ describe('valoresConocidos', () => {
     expect(valoresConocidos('apellidos', [p('4', 'Solo', '', 10, '2026-05-01T10:00:00Z')])).toEqual(
       [],
     );
+  });
+});
+
+describe('coincideJugador', () => {
+  const jose = { nombre: 'José', apellidos: 'García Pérez' };
+
+  it('encuentra ignorando tildes y mayúsculas', () => {
+    expect(coincideJugador(jose, 'jose')).toBe(true);
+    expect(coincideJugador(jose, 'JOSÉ')).toBe(true);
+    expect(coincideJugador(jose, 'perez')).toBe(true);
+  });
+
+  it('busca también en los apellidos', () => {
+    expect(coincideJugador(jose, 'garcia')).toBe(true);
+  });
+
+  it('acepta trozos sueltos en cualquier orden', () => {
+    expect(coincideJugador(jose, 'perez jose')).toBe(true);
+    expect(coincideJugador(jose, 'gar jo')).toBe(true);
+  });
+
+  it('no encuentra a quien no coincide', () => {
+    expect(coincideJugador(jose, 'martinez')).toBe(false);
+  });
+
+  it('una consulta vacía deja pasar a todos', () => {
+    expect(coincideJugador(jose, '')).toBe(true);
+    expect(coincideJugador(jose, '   ')).toBe(true);
+  });
+
+  it('funciona con jugadores sin apellidos, como los del histórico importado', () => {
+    expect(coincideJugador({ nombre: 'Mohamed', apellidos: '' }, 'moh')).toBe(true);
+    expect(coincideJugador({ nombre: 'Mohamed', apellidos: '' }, 'garcia')).toBe(false);
   });
 });
