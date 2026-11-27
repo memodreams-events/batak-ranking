@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -34,9 +35,23 @@ export class BatakController {
     return this.batak.estadoActivo();
   }
 
+  /** Apertura de la pantalla del QR. Pública: la manda el móvil de un visitante. */
+  @Post('visita')
+  @Public()
+  @HttpCode(204)
+  visita() {
+    return this.batak.registrarVisita();
+  }
+
   @Get('eventos')
   eventos() {
     return this.batak.listarEventos();
+  }
+
+  /** Ficha de un evento: sus partidas y las aperturas del QR. */
+  @Get('eventos/:id')
+  detalleEvento(@Param('id', ParseUUIDPipe) id: string) {
+    return this.batak.detalleEvento(id);
   }
 
   @Post('eventos')

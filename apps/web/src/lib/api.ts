@@ -75,3 +75,28 @@ function extractMessage(payload: unknown): string | null {
   if (Array.isArray(message)) return message.filter((m) => typeof m === 'string').join('. ');
   return null;
 }
+
+const VISITA_KEY = 'batak_visita_enviada';
+
+/**
+ * Cuenta una apertura de la pantalla del QR, una sola vez por sesión de
+ * navegador. Sin el candado de sessionStorage, el sondeo cada 4 s convertiría
+ * a un visitante en cientos de visitas.
+ *
+ * Es telemetría accesoria: si falla, falla en silencio. El visitante no tiene
+ * por qué enterarse ni ver un error por esto.
+ */
+export async function registrarVisita(): Promise<void> {
+  try {
+    if (sessionStorage.getItem(VISITA_KEY)) return;
+    sessionStorage.setItem(VISITA_KEY, '1');
+  } catch {
+    // Safari en privado no deja escribir: preferimos no contar a contar de más.
+    return;
+  }
+  try {
+    await apiFetch('/batak/visita', { method: 'POST', anonymous: true });
+  } catch {
+    /* sin conexión o API caído: la visita se pierde y no pasa nada */
+  }
+}

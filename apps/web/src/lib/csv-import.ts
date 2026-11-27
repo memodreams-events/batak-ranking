@@ -17,7 +17,11 @@ export interface ResultadoParseo {
 
 /** Quita acentos y mayúsculas para comparar cabeceras escritas de cualquier manera. */
 function clave(texto: string): string {
-  return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  return texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
 }
 
 /** Nombres aceptados para cada columna. El primero es el de nuestra exportación. */

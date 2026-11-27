@@ -1,6 +1,10 @@
 /**
  * Panel con el QR que la gente escanea desde el stand para seguir el ranking
- * en su móvil. Solo aparece en el modo TV.
+ * en su móvil. Solo aparece en el modo TV, dentro de la columna lateral.
+ *
+ * Antes iba en posición fija sobre el contenido y tapaba la puntuación de las
+ * últimas filas. Ahora ocupa su propio espacio en la rejilla: no puede solapar
+ * nada por larga que sea la clasificación.
  *
  * El SVG es un fichero estático en `public/` y no se genera en caliente: así
  * no entra una librería de QR en el bundle por un recuadro que no cambia
@@ -12,21 +16,19 @@
  */
 export function QrPanel() {
   return (
-    <aside className="fixed bottom-6 right-6 flex items-center gap-4 rounded-2xl border border-line bg-panel/95 p-4 backdrop-blur">
+    <aside className="w-full rounded-2xl border border-line bg-panel p-[max(0.75rem,1.4vh)] text-center">
       {/* El QR necesita fondo claro para que las cámaras lo lean con fiabilidad. */}
       <img
         src="/qr-ranking.svg"
         alt="Código QR para ver el ranking en el móvil"
-        className="h-[max(7rem,14vh)] w-[max(7rem,14vh)] rounded-lg bg-white p-2"
+        className="mx-auto block aspect-square w-full rounded-lg bg-white p-[max(0.5rem,0.9vh)]"
       />
-      <div className="max-w-[16ch]">
-        <p className="font-display text-[max(1.5rem,2.6vh)] font-bold uppercase leading-tight tracking-wide text-amber">
-          Escanea y sigue el ranking
-        </p>
-        <p className="mt-1 text-[max(0.8rem,1.3vh)] leading-snug text-fg2">
-          Míralo en tu móvil en directo
-        </p>
-      </div>
+      <p className="mt-[max(0.5rem,1vh)] font-display text-[max(1.1rem,2.1vh)] font-bold uppercase leading-tight tracking-wide text-amber">
+        Escanea y sigue el ranking
+      </p>
+      <p className="mt-1 text-[max(0.7rem,1.1vh)] leading-snug text-fg2">
+        Míralo en tu móvil en directo
+      </p>
     </aside>
   );
 }

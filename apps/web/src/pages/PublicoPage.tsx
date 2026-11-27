@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { fmtDate, num } from '@batak/shared';
 import { useRanking } from '../hooks/batak';
+import { registrarVisita } from '../lib/api';
 import { Logo } from '../components/Logo';
 import { RankListBuscable } from '../components/RankListBuscable';
 
@@ -12,6 +14,11 @@ import { RankListBuscable } from '../components/RankListBuscable';
  */
 export function PublicoPage() {
   const { evento, puntuaciones, ranking, online } = useRanking();
+
+  // Telemetría interna: cuántas veces se abre la pantalla del QR.
+  useEffect(() => {
+    void registrarVisita();
+  }, []);
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-4">

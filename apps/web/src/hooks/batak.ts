@@ -120,6 +120,18 @@ export function useActivarEvento() {
 }
 
 /** `force` arrastra también las partidas del evento; sin él, el API responde 409. */
+/** Ficha de un evento concreto: sus partidas y las aperturas del QR. */
+export function useDetalleEvento(id: string | undefined) {
+  return useQuery({
+    queryKey: ['batak', 'evento', id],
+    queryFn: () =>
+      apiFetch<{ evento: BatakEvento; puntuaciones: BatakPuntuacion[]; visitas: number }>(
+        `/batak/eventos/${id}`,
+      ),
+    enabled: Boolean(id),
+  });
+}
+
 /** Carga masiva de un histórico ya parseado en el navegador. */
 export function useImportar() {
   return useWrite((filas: unknown[]) =>

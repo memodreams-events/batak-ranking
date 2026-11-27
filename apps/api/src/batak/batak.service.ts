@@ -223,6 +223,58 @@ export class BatakService {
     return { ok: true };
   }
 
+  // ---------- ficha de evento ----------
+
+  /** Evento con todas sus partidas y el número de aperturas del QR. */
+  async detalleEvento(id: string): Promise<{
+    evento: BatakEvento;
+    puntuaciones: BatakPuntuacion[];
+    visitas: number;
+  }> {
+    const admin = this.supabase.admin();
+
+    const { data: evento, error } = await admin
+      .from('batak_eventos')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle<EventoRow>();
+    if (error) throwFromPostgrest(error, 'detalleEvento');
+    if (!evento) throw new NotFoundException('Evento no encontrado');
+
+    const [partidas, visitas] = await Promise.all([
+      admin
+        .from('batak_puntuaciones')
+        .select('*')
+        .eq('evento_id', id)
+        .order('created_at', { ascending: true }),
+      admin.from('batak_visitas').select('id', { count: 'exact', head: true }).eq('evento_id', id),
+    ]);
+
+    if (partidas.error) throwFromPostgrest(partidas.error, 'detalleEvento/puntuaciones');
+    // Si falla solo el contador, la ficha sigue valiendo: mejor enseñarla sin
+    // ese dato que caerse entera por una cifra accesoria.
+    const visitasCount = visitas.error ? 0 : (visitas.count ?? 0);
+
+    return {
+      evento: toEvento(evento, partidas.data?.length ?? 0),
+      puntuaciones: (partidas.data ?? []).map((row) => toPuntuacion(row as PuntuacionRow)),
+      visitas: visitasCount,
+    };
+  }
+
+  /**
+   * Registra una apertura de la pantalla del QR en el evento activo.
+   *
+   * Silencioso a propósito: es telemetría accesoria y el visitante no debe ver
+   * un error si falla. Sin evento activo simplemente no se cuenta nada.
+   */
+  async registrarVisita(): Promise<{ ok: true }> {
+    const evento = await this.eventoActivo();
+    if (!evento) return { ok: true };
+    await this.supabase.admin().from('batak_visitas').insert({ evento_id: evento.id });
+    return { ok: true };
+  }
+
   // ---------- importación ----------
 
   /**

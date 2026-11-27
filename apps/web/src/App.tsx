@@ -6,6 +6,7 @@ import { ToastProvider } from './hooks/toast';
 import { BatakLayout } from './components/BatakLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ApuntarPage } from './pages/ApuntarPage';
+import { EventoDetallePage } from './pages/EventoDetallePage';
 import { EventosPage } from './pages/EventosPage';
 import { HistoricoPage } from './pages/HistoricoPage';
 import { LoginPage } from './pages/LoginPage';
@@ -51,6 +52,7 @@ export function App() {
                   <Route path="/pantalla" element={<RankingPage />} />
                   <Route path="/apuntar" element={<ApuntarPage />} />
                   <Route path="/eventos" element={<EventosPage />} />
+                  <Route path="/eventos/:id" element={<EventoDetallePage />} />
                   <Route path="/historico" element={<HistoricoPage />} />
                   <Route path="*" element={<Navigate to="/ranking" replace />} />
                 </Route>

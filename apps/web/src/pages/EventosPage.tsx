@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { fmtDate, norm } from '@batak/shared';
 import { useActivarEvento, useAddEvento, useDeleteEvento, useEventos } from '../hooks/batak';
 import { useArmed } from '../hooks/useArmed';
@@ -130,15 +130,15 @@ export function EventosPage() {
                     evento.activo ? 'border-amber' : 'border-line'
                   }`}
                 >
-                  <div className="min-w-0">
-                    <div className="font-display text-[22px] font-semibold [overflow-wrap:anywhere]">
+                  <Link to={`/eventos/${evento.id}`} className="min-w-0 no-underline">
+                    <div className="font-display text-[22px] font-semibold [overflow-wrap:anywhere] hover:text-amber">
                       {evento.nombre}
                       {evento.activo && <span className="pill">Activo</span>}
                     </div>
                     <div className="text-[13px] text-fg2">
-                      {fmtDate(evento.fecha)} · {evento.partidas ?? 0} partidas
+                      {fmtDate(evento.fecha)} · {evento.partidas ?? 0} partidas · ver ficha →
                     </div>
-                  </div>
+                  </Link>
                   <div className="flex flex-wrap items-center gap-2.5">
                     {!evento.activo && (
                       <button

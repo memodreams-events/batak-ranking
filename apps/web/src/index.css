@@ -73,3 +73,82 @@
     @apply ml-2 inline-block rounded-full bg-amber px-2 py-[3px] align-middle text-xs font-bold uppercase tracking-wider text-ink;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Impresión.
+
+   La app es oscura, y en papel eso es un gasto de tinta y un texto ilegible.
+   Al imprimir se le da la vuelta a la paleta y se esconde lo que solo sirve en
+   pantalla: navegación, botones y buscadores. Las barras de los gráficos
+   llevan `print-color-adjust` porque los navegadores, por defecto, eliminan
+   los fondos al imprimir y dejarían los gráficos en blanco.
+--------------------------------------------------------------------------- */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background: #fff !important;
+    color: #1a1a1a !important;
+    font-size: 10.5pt;
+  }
+
+  /* Cromo de pantalla que no pinta nada en papel. */
+  header nav,
+  .print\:hidden,
+  input[type='search'],
+  [role='status'] {
+    display: none !important;
+  }
+
+  .panel {
+    border: 1px solid #e2e2e0 !important;
+    background: #fff !important;
+    break-inside: avoid;
+    padding: 10px 0 !important;
+  }
+
+  .label,
+  .hint {
+    color: #6b6b6b !important;
+  }
+
+  .panel-title {
+    color: #1a1a1a !important;
+  }
+
+  /* Las cifras destacadas y las filas del ranking, sobre fondo claro. */
+  .bg-bg2,
+  .bg-panel {
+    background: #f6f6f4 !important;
+  }
+
+  svg text {
+    fill: #1a1a1a !important;
+  }
+
+  svg text[fill='#9aa6c4'] {
+    fill: #6b6b6b !important;
+  }
+
+  svg path[fill='#ffb627'] {
+    fill: #c47d00 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  svg line {
+    stroke: #e2e2e0 !important;
+  }
+
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+}

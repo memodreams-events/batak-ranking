@@ -47,85 +47,105 @@ export function BatakLayout() {
     void navigate('/ranking');
   }
 
+  // En la TV el contenido se reparte en dos columnas: la clasificación a la
+  // izquierda y una franja lateral con la marca y el QR. Antes el QR flotaba
+  // encima y tapaba la puntuación de las últimas filas.
+  if (screen) {
+    return (
+      <>
+        <div className="mx-auto grid max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(200px,22vw)] gap-[max(1.5rem,3vw)] px-[max(1rem,2vw)] pt-[max(0.75rem,1.5vh)]">
+          <div className="min-w-0">
+            <div className="pb-[max(0.4rem,0.9vh)]">
+              <div className="label">Evento activo</div>
+              <h2
+                className={`font-display text-[max(1.6rem,3.1vh)] ${
+                  evento ? 'font-semibold' : 'font-medium text-fg2'
+                }`}
+              >
+                {evento ? `${evento.nombre} · ${fmtDate(evento.fecha)}` : 'Sin evento activo'}
+              </h2>
+            </div>
+            <Outlet context={{ screen }} />
+          </div>
+
+          <aside className="flex flex-col items-center gap-[max(1rem,2vh)]">
+            <Logo className="h-[max(3rem,7vh)]" />
+            <QrPanel />
+          </aside>
+        </div>
+
+        <div className="fixed bottom-3 left-4 opacity-35 transition-opacity hover:opacity-100">
+          <button type="button" className="btn btn-sm" onClick={exitScreen}>
+            Salir de pantalla grande
+          </button>
+        </div>
+
+        <Toast />
+      </>
+    );
+  }
+
   return (
     <>
-      <div className={`mx-auto ${screen ? 'max-w-[1400px]' : 'max-w-[1040px]'} px-4`}>
-        {!screen && (
-          <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-3 pt-[18px]">
-            <div className="flex items-center gap-3">
-              <Logo className="h-10" />
-              <span className="h-10 w-px bg-line" aria-hidden="true" />
-              <Lights />
-              <h1 className="font-display text-[28px] font-bold uppercase tracking-wide">
-                Batak <span className="text-amber">Ranking</span>
-              </h1>
-            </div>
-            <nav aria-label="Secciones" className="flex flex-wrap gap-1">
-              {LINKS.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  className={({ isActive }) =>
-                    `rounded-lg px-3.5 py-2 font-display text-[17px] font-semibold uppercase tracking-wide no-underline ${
-                      isActive ? 'bg-amber text-ink' : 'text-fg2 hover:text-fg'
-                    }`
-                  }
-                >
-                  {link.label}
-                </NavLink>
-              ))}
-            </nav>
-          </header>
-        )}
+      <div className="mx-auto max-w-[1040px] px-4">
+        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-3 pt-[18px]">
+          <div className="flex items-center gap-3">
+            <Logo className="h-10" />
+            <span className="h-10 w-px bg-line" aria-hidden="true" />
+            <Lights />
+            <h1 className="font-display text-[28px] font-bold uppercase tracking-wide">
+              Batak <span className="text-amber">Ranking</span>
+            </h1>
+          </div>
+          <nav aria-label="Secciones" className="flex flex-wrap gap-1">
+            {LINKS.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `rounded-lg px-3.5 py-2 font-display text-[17px] font-semibold uppercase tracking-wide no-underline ${
+                    isActive ? 'bg-amber text-ink' : 'text-fg2 hover:text-fg'
+                  }`
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+        </header>
 
-        <div
-          className={`flex flex-wrap items-center justify-between gap-3 ${screen ? 'pb-2.5 pt-7' : 'py-3.5'}`}
-        >
+        <div className="flex flex-wrap items-center justify-between gap-3 py-3.5">
           <div>
             <div className="label">Evento activo</div>
             <h2
-              className={`font-display ${screen ? 'text-[44px]' : 'text-[26px]'} ${
+              className={`font-display text-[26px] ${
                 evento ? 'font-semibold' : 'font-medium text-fg2'
               }`}
             >
               {evento ? `${evento.nombre} · ${fmtDate(evento.fecha)}` : 'Sin evento activo'}
             </h2>
           </div>
-          {screen ? (
-            <Logo className="h-[max(5rem,11vh)]" />
-          ) : (
-            <div className="flex items-center gap-3 text-[13px] text-fg2">
-              <span className="flex items-center gap-2">
-                <span
-                  className={`h-2 w-2 rounded-full ${online ? 'bg-ok shadow-[0_0_6px_#4ad67f]' : 'bg-bad'}`}
-                />
-                {online ? 'En directo' : 'Sin conexión con el servidor'}
-              </span>
-              {email && (
-                <>
-                  <span className="hidden sm:inline">·</span>
-                  <span className="hidden sm:inline">{email}</span>
-                  <button type="button" className="btn btn-sm" onClick={() => void signOut()}>
-                    Salir
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-3 text-[13px] text-fg2">
+            <span className="flex items-center gap-2">
+              <span
+                className={`h-2 w-2 rounded-full ${online ? 'bg-ok shadow-[0_0_6px_#4ad67f]' : 'bg-bad'}`}
+              />
+              {online ? 'En directo' : 'Sin conexión con el servidor'}
+            </span>
+            {email && (
+              <>
+                <span className="hidden sm:inline">·</span>
+                <span className="hidden sm:inline">{email}</span>
+                <button type="button" className="btn btn-sm" onClick={() => void signOut()}>
+                  Salir
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         <Outlet context={{ screen }} />
       </div>
-
-      {screen && (
-        <div className="fixed bottom-3 left-4 opacity-35 transition-opacity hover:opacity-100">
-          <button type="button" className="btn btn-sm" onClick={exitScreen}>
-            Salir de pantalla grande
-          </button>
-        </div>
-      )}
-
-      {screen && <QrPanel />}
 
       <Toast />
     </>

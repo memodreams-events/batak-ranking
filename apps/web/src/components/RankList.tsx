@@ -51,7 +51,7 @@ export function RankList({
   }
 
   return (
-    <div className="grid gap-1.5">
+    <div className={`grid ${screen ? 'gap-[0.55vh]' : 'gap-1.5'}`}>
       {rows.slice(0, limit).map((row, index) => {
         const puesto = puestoDeFila ? puestoDeFila(row) : index + 1;
         const podium = PODIUM[puesto - 1] ?? 'text-fg2';
@@ -61,7 +61,7 @@ export function RankList({
             className={[
               'grid items-center gap-3.5 rounded-[10px] border bg-bg2',
               screen
-                ? 'grid-cols-[80px_minmax(0,1fr)_auto] px-[22px] py-4'
+                ? 'grid-cols-[max(48px,4vw)_minmax(0,1fr)_auto] px-[max(14px,1.2vw)] py-[0.85vh]'
                 : 'grid-cols-[56px_minmax(0,1fr)_auto] px-3.5 py-2.5',
               puesto === 1
                 ? 'border-amber bg-gradient-to-r from-amber/20 to-bg2 to-60%'
@@ -70,22 +70,24 @@ export function RankList({
             ].join(' ')}
           >
             <div
-              className={`font-display font-bold tabular-nums ${podium} ${screen ? 'text-[44px]' : 'text-[28px]'}`}
+              className={`font-display font-bold tabular-nums ${podium} ${screen ? 'text-[max(22px,3vh)]' : 'text-[28px]'}`}
             >
               {puesto}
             </div>
             <div className="min-w-0">
               <div
-                className={`font-medium [overflow-wrap:anywhere] ${screen ? 'text-[32px]' : 'text-xl'}`}
+                className={`font-medium [overflow-wrap:anywhere] ${screen ? 'text-[max(18px,2.5vh)]' : 'text-xl'}`}
               >
                 {nombreCompleto(row)}
               </div>
               {meta(row, showEvent) && (
-                <div className="text-[13px] text-fg2">{meta(row, showEvent)}</div>
+                <div className={`text-fg2 ${screen ? 'text-[max(10px,1.15vh)]' : 'text-[13px]'}`}>
+                  {meta(row, showEvent)}
+                </div>
               )}
             </div>
             <div
-              className={`font-display font-bold tabular-nums ${puesto <= 3 ? podium : ''} ${screen ? 'text-[52px]' : 'text-[32px]'}`}
+              className={`font-display font-bold tabular-nums ${puesto <= 3 ? podium : ''} ${screen ? 'text-[max(26px,3.9vh)]' : 'text-[32px]'}`}
             >
               {num(row.puntos)}
             </div>
