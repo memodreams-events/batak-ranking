@@ -142,6 +142,12 @@ export function useImportar() {
   );
 }
 
+export function useDesactivarEvento() {
+  return useWrite((id: string) =>
+    apiFetch<BatakEvento>(`/batak/eventos/${id}/desactivar`, { method: 'PATCH' }),
+  );
+}
+
 export function useDeleteEvento() {
   return useWrite(({ id, force = false }: { id: string; force?: boolean }) =>
     apiFetch<{ ok: true; partidasBorradas: number }>(

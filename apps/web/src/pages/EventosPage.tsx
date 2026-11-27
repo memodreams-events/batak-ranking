@@ -2,7 +2,13 @@ import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { fmtDate, norm } from '@batak/shared';
-import { useActivarEvento, useAddEvento, useDeleteEvento, useEventos } from '../hooks/batak';
+import {
+  useActivarEvento,
+  useAddEvento,
+  useDeleteEvento,
+  useDesactivarEvento,
+  useEventos,
+} from '../hooks/batak';
 import { useArmed } from '../hooks/useArmed';
 import { useToast } from '../hooks/toast';
 
@@ -18,6 +24,7 @@ export function EventosPage() {
   const addEvento = useAddEvento();
   const activarEvento = useActivarEvento();
   const deleteEvento = useDeleteEvento();
+  const desactivarEvento = useDesactivarEvento();
   const { show } = useToast();
   const navigate = useNavigate();
 
@@ -63,6 +70,15 @@ export function EventosPage() {
       },
     );
   }
+
+  // Armado propio, separado del de borrar: son dos botones distintos en la
+  // misma fila y no deben compartir estado de confirmación.
+  const { armed: armedOff, press: pressOff } = useArmed((id) => {
+    desactivarEvento.mutate(id, {
+      onSuccess: () => show('Evento desactivado. La TV ya no muestra ningún ranking.'),
+      onError: (error) => show(`No se pudo desactivar: ${error.message}`, true),
+    });
+  });
 
   function activar(id: string): void {
     activarEvento.mutate(id, {
@@ -140,7 +156,15 @@ export function EventosPage() {
                     </div>
                   </Link>
                   <div className="flex flex-wrap items-center gap-2.5">
-                    {!evento.activo && (
+                    {evento.activo ? (
+                      <button
+                        type="button"
+                        className="btn btn-sm"
+                        onClick={() => pressOff(evento.id)}
+                      >
+                        {armedOff === evento.id ? '¿Dejar la TV sin ranking?' : 'Desactivar'}
+                      </button>
+                    ) : (
                       <button
                         type="button"
                         className="btn btn-sm"

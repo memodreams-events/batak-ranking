@@ -110,6 +110,27 @@ export class BatakService {
    * el caso destructivo hay que pedirlo a propósito: el que no lo pide, cobra
    * un 409 que dice exactamente cuántas partidas hay en medio.
    */
+  /**
+   * Deja el sistema sin ningún evento en curso.
+   *
+   * Es lo que se pulsa al desmontar el stand: hasta ahora solo se podía pasar
+   * el testigo a otro evento, así que el último seguía activo para siempre y
+   * la TV mostraba su ranking indefinidamente.
+   */
+  async desactivarEvento(id: string): Promise<BatakEvento> {
+    const { data, error } = await this.supabase
+      .admin()
+      .from('batak_eventos')
+      .update({ activo: false })
+      .eq('id', id)
+      .select('*')
+      .maybeSingle<EventoRow>();
+
+    if (error) throwFromPostgrest(error, 'desactivarEvento');
+    if (!data) throw new NotFoundException('Evento no encontrado');
+    return toEvento(data);
+  }
+
   async borrarEvento(id: string, force = false): Promise<{ ok: true; partidasBorradas: number }> {
     const { count, error: countError } = await this.supabase
       .admin()

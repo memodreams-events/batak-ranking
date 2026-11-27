@@ -64,6 +64,12 @@ export class BatakController {
     return this.batak.activarEvento(id);
   }
 
+  /** Deja el sistema sin evento en curso: la TV pasa a "Sin evento activo". */
+  @Patch('eventos/:id/desactivar')
+  desactivarEvento(@Param('id', ParseUUIDPipe) id: string) {
+    return this.batak.desactivarEvento(id);
+  }
+
   /** `?force=true` borra también las partidas del evento. Sin él, un evento con partidas da 409. */
   @Delete('eventos/:id')
   borrarEvento(@Param('id', ParseUUIDPipe) id: string, @Query('force') force?: string) {
