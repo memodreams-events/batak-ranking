@@ -1,26 +1,106 @@
+/* Hallmark · checked: 2026-11-28 · genre: atmospheric (inferred) · scope: app
+ * floor: 0 FAIL · fixed: 11 (4, 7a, 9, 10, 11, 20, 24b, 26b, 48, 54, contrast) · structural: 0 printed
+ * finish-review: subagent · 5 findings · 4 resolved 1 answered · gap: none
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F15 · one-off sizes and the 10px radius are the owner's scale; a polish does not re-space it */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* -------------------------------------------------------------------------
+     Paleta: zafiro profundo 60 · blanco perla 30 · naranja brasa 10.
+
+     Canales RGB sueltos para que Tailwind pueda aplicarles opacidad
+     (`bg-brasa/10`). Hay tres superficies y cada una redefine los mismos
+     nombres, así un componente no necesita saber sobre qué fondo está.
+  ------------------------------------------------------------------------- */
+
+  /* Zafiro: el fondo de la app. Texto perla. */
+  :root {
+    --bg: 10 36 99; /* #0a2463 zafiro profundo */
+    --bg2: 18 49 122; /* #12317a pozo sobre zafiro: campos, botones, cifras */
+    --panel: 247 244 237; /* #f7f4ed blanco perla */
+    --row: 247 244 237;
+    --line: 47 76 147; /* #2f4c93 filete */
+    --edge: 127 154 214; /* #7f9ad6 borde de campo, 3:1 contra el pozo */
+    --fg: 247 244 237;
+    --fg2: 185 198 230; /* #b9c6e6 */
+    --brasa: 242 92 31; /* #f25c1f naranja brasa, como relleno */
+    --brasa-text: 255 132 72; /* #ff8448 brasa aclarada para leerse sobre zafiro */
+    --focus: 242 92 31;
+    --ink: 28 10 2; /* #1c0a02 texto sobre brasa */
+    --ok: 95 220 146;
+    --bad: 255 154 154;
+    --silver: 201 209 227;
+    --bronze: 224 160 110;
+    --paper: 255 255 255;
+  }
+
+  /* Perla: donde se lee. Texto zafiro. */
+  .surface-perla,
+  .panel {
+    --bg2: 235 230 218; /* #ebe6da pozo sobre perla */
+    --row: 247 244 237;
+    --line: 214 208 193; /* #d6d0c1 */
+    --edge: 127 121 105; /* #7f7969 */
+    --fg: 10 36 99;
+    --fg2: 75 92 133; /* #4b5c85 */
+    --brasa-text: 159 51 6; /* #9f3306 brasa oscurecida para leerse sobre perla */
+    --focus: 194 65 12; /* #c2410c: la brasa pura no llega a 3:1 sobre perla */
+    --bad: 179 38 30;
+    --silver: 90 102 128;
+    --bronze: 143 79 28;
+    color: rgb(var(--fg));
+    /* Los controles nativos (fecha, lista de sugerencias) siguen a la superficie. */
+    color-scheme: light;
+  }
+
+  /* Una fila perla dentro de un panel perla baja un tono para no desaparecer. */
+  :is(.surface-perla, .panel) .surface-perla {
+    --row: 235 230 218;
+  }
+
+  /* Brasa: la fila del líder en la TV. Todo el texto en tinta. */
+  .surface-brasa {
+    --row: 242 92 31;
+    --fg: 28 10 2;
+    --fg2: 28 10 2;
+    --brasa-text: 28 10 2;
+    --silver: 28 10 2;
+    --bronze: 28 10 2;
+    color: rgb(var(--fg));
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     color-scheme: dark;
+    scrollbar-color: rgb(var(--line)) rgb(var(--bg));
+  }
+
+  html,
+  body {
+    overflow-x: clip;
   }
 
   body {
-    @apply bg-bg font-sans text-base leading-normal text-fg;
+    @apply bg-bg font-sans text-base leading-normal text-fg caret-brasa;
+  }
+
+  ::selection {
+    @apply bg-brasa text-ink;
   }
 
   :focus-visible {
-    @apply outline outline-2 outline-offset-2 outline-amber;
+    @apply outline outline-2 outline-offset-2 outline-focus;
   }
 }
 
 @layer components {
-  /* Etiqueta pequeña en mayúsculas: los rótulos de formulario y los antetítulos. */
+  /* Rótulo de formulario o de cifra: la de texto, un paso más pequeña, en minúsculas. */
   .label {
-    @apply text-xs font-semibold uppercase tracking-label text-fg2;
+    @apply text-sm font-medium text-fg2;
   }
 
   .panel {
@@ -32,7 +112,7 @@
   }
 
   .field {
-    @apply w-full rounded-lg border border-line bg-bg2 px-[14px] py-3 text-lg text-fg outline-none placeholder:text-fg2 focus:border-fg2;
+    @apply w-full rounded-lg border border-edge bg-bg2 px-[14px] py-3 text-lg text-fg placeholder:text-fg2 focus:border-focus;
   }
 
   /* Las cifras van en la condensada y con ancho fijo para que no bailen al actualizarse. */
@@ -46,15 +126,21 @@
   .btn:hover:not(:disabled) {
     @apply border-fg2;
   }
+  .btn:active:not(:disabled) {
+    @apply translate-y-px bg-line;
+  }
   .btn:disabled {
     @apply cursor-not-allowed opacity-50;
   }
 
   .btn-primary {
-    @apply btn border-amber bg-amber px-[22px] py-3 font-display text-xl uppercase tracking-wide text-ink;
+    @apply btn border-brasa bg-brasa px-[22px] py-3 font-display text-xl text-ink;
   }
   .btn-primary:hover:not(:disabled) {
-    @apply border-amber brightness-110;
+    @apply border-brasa brightness-110;
+  }
+  .btn-primary:active:not(:disabled) {
+    @apply bg-brasa brightness-95;
   }
 
   .btn-sm {
@@ -70,20 +156,29 @@
   }
 
   .pill {
-    @apply ml-2 inline-block rounded-full bg-amber px-2 py-[3px] align-middle text-xs font-bold uppercase tracking-wider text-ink;
+    @apply ml-2 inline-block rounded-full bg-brasa px-2 py-[3px] align-middle text-sm font-semibold text-ink;
   }
 }
 
 /* ---------------------------------------------------------------------------
    Impresión.
 
-   La app es oscura, y en papel eso es un gasto de tinta y un texto ilegible.
+   La app es de fondo zafiro, y en papel eso es un gasto de tinta y un texto ilegible.
    Al imprimir se le da la vuelta a la paleta y se esconde lo que solo sirve en
    pantalla: navegación, botones y buscadores. Las barras de los gráficos
    llevan `print-color-adjust` porque los navegadores, por defecto, eliminan
    los fondos al imprimir y dejarían los gráficos en blanco.
 --------------------------------------------------------------------------- */
 @media print {
+  :root {
+    --print-paper: #fcfcfa;
+    --print-ink: #1a1a1a;
+    --print-muted: #6b6b6b;
+    --print-rule: #e2e2e0;
+    --print-fill: #f6f6f4;
+    --print-accent: #c47d00;
+  }
+
   @page {
     size: A4;
     margin: 14mm;
@@ -94,8 +189,8 @@
   }
 
   body {
-    background: #fff !important;
-    color: #1a1a1a !important;
+    background: var(--print-paper) !important;
+    color: var(--print-ink) !important;
     font-size: 10.5pt;
   }
 
@@ -108,43 +203,43 @@
   }
 
   .panel {
-    border: 1px solid #e2e2e0 !important;
-    background: #fff !important;
+    border: 1px solid var(--print-rule) !important;
+    background: var(--print-paper) !important;
     break-inside: avoid;
-    padding: 10px 0 !important;
+    padding: 12px 0 !important;
   }
 
   .label,
   .hint {
-    color: #6b6b6b !important;
+    color: var(--print-muted) !important;
   }
 
   .panel-title {
-    color: #1a1a1a !important;
+    color: var(--print-ink) !important;
   }
 
   /* Las cifras destacadas y las filas del ranking, sobre fondo claro. */
   .bg-bg2,
   .bg-panel {
-    background: #f6f6f4 !important;
+    background: var(--print-fill) !important;
   }
 
   svg text {
-    fill: #1a1a1a !important;
+    fill: var(--print-ink) !important;
   }
 
-  svg text[fill='#9aa6c4'] {
-    fill: #6b6b6b !important;
+  svg text.fill-fg2 {
+    fill: var(--print-muted) !important;
   }
 
-  svg path[fill='#ffb627'] {
-    fill: #c47d00 !important;
+  svg path.fill-brasa {
+    fill: var(--print-accent) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
   svg line {
-    stroke: #e2e2e0 !important;
+    stroke: var(--print-rule) !important;
   }
 
   a {

@@ -12,7 +12,7 @@ export function RankingPage() {
   const navigate = useNavigate();
 
   const subtitle = puntuaciones.length
-    ? `${puntuaciones.length} partidas · ${ranking.length} jugadores`
+    ? `${puntuaciones.length} partidas de ${ranking.length} jugadores`
     : '';
 
   function bigScreen(): void {
@@ -39,9 +39,10 @@ export function RankingPage() {
     <section className="grid gap-5 pt-2">
       <div className={screen ? '' : 'panel'}>
         {!screen && (
-          <h3 className="panel-title">
-            Clasificación <span className="hint font-sans font-normal">{subtitle}</span>
-          </h3>
+          <div className="mb-3 flex flex-wrap items-baseline gap-x-3">
+            <h3 className="panel-title mb-0">Clasificación</h3>
+            {subtitle && <p className="hint">{subtitle}</p>}
+          </div>
         )}
         <RankList
           rows={ranking}

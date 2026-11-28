@@ -52,7 +52,7 @@ export function EventoDetallePage() {
       <div className="flex flex-wrap items-start justify-between gap-3 print:block">
         <div>
           <Link to="/eventos" className="hint underline print:hidden">
-            ← Eventos
+            Volver a eventos
           </Link>
           <h2 className="mt-1 font-display text-[28px] font-semibold">
             {evento.nombre}
@@ -60,7 +60,7 @@ export function EventoDetallePage() {
           </h2>
           <p className="hint">
             {fmtDate(evento.fecha)}
-            {stats.partidas > 0 && ` · de ${stats.inicio} a ${stats.fin}`}
+            {stats.partidas > 0 && `, de ${stats.inicio} a ${stats.fin}`}
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5 print:hidden">

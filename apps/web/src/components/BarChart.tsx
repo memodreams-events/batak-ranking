@@ -40,7 +40,7 @@ export function BarChart({ datos, titulo, alto = 180 }: BarChartProps) {
       >
         {[0.25, 0.5, 0.75, 1].map((f) => {
           const y = padSup + (alto - padSup) * (1 - f);
-          return <line key={f} x1="0" y1={y} x2={ancho} y2={y} stroke="#2a3450" strokeWidth="1" />;
+          return <line key={f} x1="0" y1={y} x2={ancho} y2={y} className="stroke-line" strokeWidth="1" />;
         })}
 
         {datos.map((d, i) => {
@@ -52,7 +52,7 @@ export function BarChart({ datos, titulo, alto = 180 }: BarChartProps) {
             <g key={d.etiqueta}>
               <path
                 d={`M${x},${alto} L${x},${y + r} Q${x},${y} ${x + r},${y} L${x + bw - r},${y} Q${x + bw},${y} ${x + bw},${y + r} L${x + bw},${alto} Z`}
-                fill="#ffb627"
+                className="fill-brasa"
               />
               <text
                 x={x + bw / 2}
@@ -60,18 +60,18 @@ export function BarChart({ datos, titulo, alto = 180 }: BarChartProps) {
                 textAnchor="middle"
                 fontSize="13"
                 fontWeight="600"
-                fill="#eef1f8"
+                className="fill-fg"
               >
                 {d.valor}
               </text>
-              <text x={x + bw / 2} y={alto + 17} textAnchor="middle" fontSize="12" fill="#9aa6c4">
+              <text x={x + bw / 2} y={alto + 17} textAnchor="middle" fontSize="12" className="fill-fg2">
                 {d.etiqueta}
               </text>
             </g>
           );
         })}
 
-        <line x1="0" y1={alto} x2={ancho} y2={alto} stroke="#9aa6c4" strokeWidth="1.5" />
+        <line x1="0" y1={alto} x2={ancho} y2={alto} className="stroke-fg2" strokeWidth="1.5" />
       </svg>
     </figure>
   );

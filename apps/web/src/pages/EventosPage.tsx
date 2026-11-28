@@ -138,21 +138,23 @@ export function EventosPage() {
           {lista.length === 0 ? (
             <div className="hint">Aún no hay eventos. Crea el primero con el formulario.</div>
           ) : (
-            <div className="grid gap-2">
+            <div className="grid">
               {lista.map((evento) => (
                 <div
                   key={evento.id}
-                  className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[10px] border bg-bg2 px-3.5 py-3 ${
-                    evento.activo ? 'border-amber' : 'border-line'
+                  className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-line px-3.5 py-3 last:border-b-0 ${
+                    evento.activo ? 'bg-brasa/10' : ''
                   }`}
                 >
                   <Link to={`/eventos/${evento.id}`} className="min-w-0 no-underline">
-                    <div className="font-display text-[22px] font-semibold [overflow-wrap:anywhere] hover:text-amber">
+                    <div className="font-display text-[22px] font-semibold [overflow-wrap:anywhere] hover:text-brasa-text">
                       {evento.nombre}
                       {evento.activo && <span className="pill">Activo</span>}
                     </div>
-                    <div className="text-[13px] text-fg2">
-                      {fmtDate(evento.fecha)} · {evento.partidas ?? 0} partidas · ver ficha →
+                    <div className="flex flex-wrap gap-x-3 text-sm text-fg2">
+                      <span>{fmtDate(evento.fecha)}</span>
+                      <span>{evento.partidas ?? 0} partidas</span>
+                      <span className="underline">Ver ficha</span>
                     </div>
                   </Link>
                   <div className="flex flex-wrap items-center gap-2.5">

@@ -42,7 +42,7 @@ export function LoginPage() {
       <div className="mb-8 text-center">
         <Logo className="mx-auto h-10" />
         <h1 className="mt-5 font-display text-3xl font-bold uppercase tracking-wide">
-          Batak <span className="text-amber">Ranking</span>
+          Batak <span className="text-brasa-text">Ranking</span>
         </h1>
         <p className="hint mt-1">Acceso restringido al personal del stand</p>
       </div>
@@ -85,7 +85,7 @@ export function LoginPage() {
 
       <p className="hint mt-6 text-center">
         ¿Solo quieres ver la clasificación?{' '}
-        <a href="/r" className="text-amber underline">
+        <a href="/r" className="text-brasa-text underline">
           Ábrela aquí
         </a>
         .

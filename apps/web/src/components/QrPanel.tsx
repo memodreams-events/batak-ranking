@@ -16,17 +16,17 @@
  */
 export function QrPanel() {
   return (
-    <aside className="w-full rounded-2xl border border-line bg-panel p-[max(0.75rem,1.4vh)] text-center">
+    <aside className="surface-perla w-full rounded-2xl border border-line bg-panel p-[max(0.75rem,1.4vh)] text-center">
       {/* El QR necesita fondo claro para que las cámaras lo lean con fiabilidad. */}
       <img
         src="/qr-ranking.svg"
         alt="Código QR para ver el ranking en el móvil"
-        className="mx-auto block aspect-square w-full rounded-lg bg-white p-[max(0.5rem,0.9vh)]"
+        className="mx-auto block aspect-square w-full rounded-lg bg-paper p-[max(0.5rem,0.9vh)]"
       />
-      <p className="mt-[max(0.5rem,1vh)] font-display text-[max(1.1rem,2.1vh)] font-bold uppercase leading-tight tracking-wide text-amber">
+      <p className="mt-[max(0.5rem,1vh)] font-display text-[max(1.25rem,2.4vh)] font-bold leading-tight text-brasa-text">
         Escanea y sigue el ranking
       </p>
-      <p className="mt-1 text-[max(0.7rem,1.1vh)] leading-snug text-fg2">
+      <p className="mt-1 text-[max(0.875rem,1.6vh)] leading-snug text-fg2">
         Míralo en tu móvil en directo
       </p>
     </aside>

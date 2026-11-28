@@ -21,7 +21,7 @@ function Lights() {
         <i
           key={i}
           className={`block h-2.5 w-2.5 rounded-full ${
-            i % 2 === 0 ? 'bg-amber shadow-[0_0_8px_#ffb627]' : 'bg-line'
+            i % 2 === 0 ? 'bg-brasa shadow-light' : 'bg-line'
           }`}
         />
       ))}
@@ -55,15 +55,17 @@ export function BatakLayout() {
       <>
         <div className="mx-auto grid max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(200px,22vw)] gap-[max(1.5rem,3vw)] px-[max(1rem,2vw)] pt-[max(0.75rem,1.5vh)]">
           <div className="min-w-0">
-            <div className="pb-[max(0.4rem,0.9vh)]">
-              <div className="label">Evento activo</div>
+            <div className="flex flex-wrap items-baseline gap-x-4 pb-[max(0.4rem,0.9vh)]">
               <h2
                 className={`font-display text-[max(1.6rem,3.1vh)] ${
                   evento ? 'font-semibold' : 'font-medium text-fg2'
                 }`}
               >
-                {evento ? `${evento.nombre} · ${fmtDate(evento.fecha)}` : 'Sin evento activo'}
+                {evento ? evento.nombre : 'Sin evento activo'}
               </h2>
+              {evento && (
+                <p className="text-[max(1rem,1.9vh)] text-fg2">{fmtDate(evento.fecha)}</p>
+              )}
             </div>
             <Outlet context={{ screen }} />
           </div>
@@ -74,7 +76,7 @@ export function BatakLayout() {
           </aside>
         </div>
 
-        <div className="fixed bottom-3 left-4 opacity-35 transition-opacity hover:opacity-100">
+        <div className="fixed bottom-3 left-4 opacity-35 transition-opacity focus-within:opacity-100 hover:opacity-100">
           <button type="button" className="btn btn-sm" onClick={exitScreen}>
             Salir de pantalla grande
           </button>
@@ -94,7 +96,7 @@ export function BatakLayout() {
             <span className="h-10 w-px bg-line" aria-hidden="true" />
             <Lights />
             <h1 className="font-display text-[28px] font-bold uppercase tracking-wide">
-              Batak <span className="text-amber">Ranking</span>
+              Batak <span className="text-brasa-text">Ranking</span>
             </h1>
           </div>
           <nav aria-label="Secciones" className="flex flex-wrap gap-1">
@@ -103,8 +105,8 @@ export function BatakLayout() {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `rounded-lg px-3.5 py-2 font-display text-[17px] font-semibold uppercase tracking-wide no-underline ${
-                    isActive ? 'bg-amber text-ink' : 'text-fg2 hover:text-fg'
+                  `rounded-lg px-3.5 py-2 text-base font-semibold no-underline active:translate-y-px ${
+                    isActive ? 'bg-brasa text-ink' : 'text-fg2 hover:text-fg'
                   }`
                 }
               >
@@ -115,26 +117,22 @@ export function BatakLayout() {
         </header>
 
         <div className="flex flex-wrap items-center justify-between gap-3 py-3.5">
-          <div>
-            <div className="label">Evento activo</div>
+          <div className="flex flex-wrap items-baseline gap-x-3">
             <h2
               className={`font-display text-[26px] ${
                 evento ? 'font-semibold' : 'font-medium text-fg2'
               }`}
             >
-              {evento ? `${evento.nombre} · ${fmtDate(evento.fecha)}` : 'Sin evento activo'}
+              {evento ? evento.nombre : 'Sin evento activo'}
             </h2>
+            {evento && <p className="hint">{fmtDate(evento.fecha)}</p>}
           </div>
-          <div className="flex items-center gap-3 text-[13px] text-fg2">
-            <span className="flex items-center gap-2">
-              <span
-                className={`h-2 w-2 rounded-full ${online ? 'bg-ok shadow-[0_0_6px_#4ad67f]' : 'bg-bad'}`}
-              />
+          <div className="flex items-center gap-3 text-sm text-fg2">
+            <span className={online ? 'font-medium text-ok' : 'font-medium text-bad'}>
               {online ? 'En directo' : 'Sin conexión con el servidor'}
             </span>
             {email && (
               <>
-                <span className="hidden sm:inline">·</span>
                 <span className="hidden sm:inline">{email}</span>
                 <button type="button" className="btn btn-sm" onClick={() => void signOut()}>
                   Salir

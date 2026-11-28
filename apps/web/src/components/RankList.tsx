@@ -21,14 +21,14 @@ interface RankListProps {
 }
 
 /** Posiciones de podio: oro, plata y bronce. El resto va en gris. */
-const PODIUM = ['text-amber', 'text-silver', 'text-bronze'];
+const PODIUM = ['text-brasa-text', 'text-silver', 'text-bronze'];
 
-function meta(row: RankRow, showEvent: boolean): string {
+function meta(row: RankRow, showEvent: boolean): string[] {
   const parts: string[] = [];
   if (showEvent && row.eventoNombre) parts.push(row.eventoNombre);
   if (row.intentos > 1) parts.push(`${row.intentos} intentos`);
   if (row.createdAt && !showEvent) parts.push(fmtTime(row.createdAt));
-  return parts.join(' · ');
+  return parts;
 }
 
 export function RankList({
@@ -51,21 +51,25 @@ export function RankList({
   }
 
   return (
-    <div className={`grid ${screen ? 'gap-[0.55vh]' : 'gap-1.5'}`}>
+    <div className={`grid ${screen ? 'gap-[0.55vh]' : ''}`}>
       {rows.slice(0, limit).map((row, index) => {
         const puesto = puestoDeFila ? puestoDeFila(row) : index + 1;
         const podium = PODIUM[puesto - 1] ?? 'text-fg2';
+        const detalles = meta(row, showEvent);
         return (
           <div
             key={row.puntuacionId}
             className={[
-              'grid items-center gap-3.5 rounded-[10px] border bg-bg2',
+              'grid items-center gap-3.5',
+              // En la TV cada fila es una tarjeta sobre el fondo; fuera de ella
+              // la lista suele ir dentro de un panel y basta con una raya.
               screen
-                ? 'grid-cols-[max(48px,4vw)_minmax(0,1fr)_auto] px-[max(14px,1.2vw)] py-[0.85vh]'
-                : 'grid-cols-[56px_minmax(0,1fr)_auto] px-3.5 py-2.5',
-              puesto === 1
-                ? 'border-amber bg-gradient-to-r from-amber/20 to-bg2 to-60%'
-                : 'border-transparent',
+                ? 'grid-cols-[max(48px,4vw)_minmax(0,1fr)_auto] rounded-[10px] bg-row px-[max(14px,1.2vw)] py-[0.85vh]'
+                : 'grid-cols-[56px_minmax(0,1fr)_auto] border-b border-line px-3.5 py-2.5 last:border-b-0',
+              // Filas perla sobre el fondo zafiro; la del líder, en brasa entera:
+              // es lo único de ese color en la pantalla y se ve desde el pasillo.
+              screen ? (puesto === 1 ? 'surface-brasa' : 'surface-perla') : '',
+              !screen && puesto === 1 ? 'bg-brasa/10' : '',
               row.puntuacionId === highlightId ? 'animate-flash motion-reduce:animate-none' : '',
             ].join(' ')}
           >
@@ -80,9 +84,13 @@ export function RankList({
               >
                 {nombreCompleto(row)}
               </div>
-              {meta(row, showEvent) && (
-                <div className={`text-fg2 ${screen ? 'text-[max(10px,1.15vh)]' : 'text-[13px]'}`}>
-                  {meta(row, showEvent)}
+              {detalles.length > 0 && (
+                <div
+                  className={`flex flex-wrap gap-x-3 text-fg2 ${screen ? 'text-[max(14px,1.6vh)]' : 'text-sm'}`}
+                >
+                  {detalles.map((detalle) => (
+                    <span key={detalle}>{detalle}</span>
+                  ))}
                 </div>
               )}
             </div>

@@ -56,7 +56,7 @@ export function ApuntarPage() {
         onSuccess: ({ puesto }) => {
           show(
             `${nombreCompleto({ nombre: limpio, apellidos: limpioApellidos })}: ${num(valor)} puntos` +
-              (puesto ? ` · puesto ${puesto}` : ' (no mejora su récord)'),
+              (puesto ? `, puesto ${puesto}` : ' (no mejora su récord)'),
           );
           setNombre('');
           setApellidos('');
@@ -148,17 +148,15 @@ export function ApuntarPage() {
           {recent.length === 0 ? (
             <div className="hint">Aquí aparecerán las últimas partidas apuntadas.</div>
           ) : (
-            <div className="grid gap-1">
-              {recent.map((partida, index) => (
+            <div className="grid">
+              {recent.map((partida) => (
                 <div
                   key={partida.id}
-                  className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2.5 rounded-lg px-2.5 py-2 text-[15px] ${
-                    index % 2 === 0 ? 'bg-bg2' : ''
-                  }`}
+                  className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2.5 border-b border-line px-2.5 py-2 text-base last:border-b-0`}
                 >
                   <div className="min-w-0 [overflow-wrap:anywhere]">
                     {nombreCompleto(partida)}
-                    <span className="ml-1.5 text-[13px] text-fg2">
+                    <span className="ml-1.5 text-sm text-fg2">
                       {fmtTime(partida.createdAt)}
                     </span>
                   </div>

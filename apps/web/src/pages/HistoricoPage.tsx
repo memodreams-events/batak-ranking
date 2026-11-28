@@ -110,7 +110,7 @@ export function HistoricoPage() {
         </div>
 
         {previo && (
-          <div className="mt-4 rounded-[10px] border border-dashed border-amber p-3.5">
+          <div className="mt-4 rounded-[10px] border border-dashed border-brasa p-3.5">
             <p className="font-display text-xl font-semibold">
               {num(previo.filas.length)} partidas listas para importar
             </p>
@@ -130,7 +130,7 @@ export function HistoricoPage() {
                 <summary className="cursor-pointer text-sm text-bad">
                   {previo.errores.length} filas con problemas (se saltarán)
                 </summary>
-                <ul className="mt-1 max-h-40 overflow-y-auto text-[13px] text-fg2">
+                <ul className="mt-1 max-h-40 overflow-y-auto text-sm text-fg2">
                   {previo.errores.map((e) => (
                     <li key={e}>{e}</li>
                   ))}
